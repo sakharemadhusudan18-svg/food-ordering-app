@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodFleet — Premium Food Ordering</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: { display: ['Playfair Display','serif'], body: ['DM Sans','sans-serif'] },
+      colors: {
+        brand: { 50:'#FFF7ED',100:'#FFEDD5',200:'#FED7AA',300:'#FDBA74',400:'#FB923C',500:'#F97316',600:'#EA580C',700:'#C2410C',800:'#9A3412',900:'#7C2D12' }
+      }
+    }
+  }
+}
+</script>
+<style>
+:root {
+  --bg: #FFFAF5; --fg: #1E293B; --muted: #64748B; --accent: #F97316;
+  --card: #FFFFFF; --border: #E2E8F0; --surface: #F8FAFC; --success: #10B981; --danger: #EF4444;
+}
+.dark {
+  --bg: #0F172A; --fg: #F1F5F9; --muted: #94A3B8; --accent: #FB923C;
+  --card: #1E293B; --border: #334155; --surface: #1E293B; --success: #34D399; --danger: #F87171;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--fg); transition:background .3s,color .3s; overflow-x:hidden; }
+h1,h2,h3,h4,h5 { font-family:'Playfair Display',serif; }
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--surface); }
+::-webkit-scrollbar-thumb { background:var(--accent); border-radius:3px; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes slideRight { from{transform:translateX(100%)} to{transform:translateX(0)} }
+@keyframes scaleIn { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
+@keyframes pulseGlow { 0%,100%{box-shadow:0 0 5px rgba(249,115,22,.3)} 50%{box-shadow:0 0 20px rgba(249,115,22,.6)} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+@keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes toastOut { from{transform:translateX(0);opacity:1} to{transform:translateX(120%);opacity:0} }
+@keyframes heroBg { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+.anim-fade-up { animation:fadeUp .6s ease both; }
+.anim-fade-in { animation:fadeIn .5s ease both; }
+.anim-scale { animation:scaleIn .4s ease both; }
+.anim-float { animation:float 3s ease-in-out infinite; }
+.anim-d1 { animation-delay:.1s; }
+.anim-d2 { animation-delay:.2s; }
+.anim-d3 { animation-delay:.3s; }
+.anim-d4 { animation-delay:.4s; }
+.hero-bg { background:linear-gradient(135deg,#7C2D12 0%,#C2410C 25%,#F97316 50%,#EA580C 75%,#9A3412 100%); background-size:400% 400%; animation:heroBg 12s ease infinite; }
+.glass { background:rgba(255,255,255,.08); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.12); }
+.dark .glass { background:rgba(15,23,42,.6); border:1px solid rgba(255,255,255,.08); }
+.card-hover { transition:all .3s ease; }
+.card-hover:hover { transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,.1); }
+.dark .card-hover:hover { box-shadow:0 20px 40px rgba(0,0,0,.4); }
+.btn-primary { background:var(--accent); color:#fff; padding:.65rem 1.5rem; border-radius:.75rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:.5rem; font-family:inherit; font-size:.9rem; }
+.btn-primary:hover { filter:brightness(1.1); transform:translateY(-1px); box-shadow:0 4px 12px rgba(249,115,22,.4); }
+.btn-secondary { background:var(--surface); color:var(--fg); padding:.65rem 1.5rem; border-radius:.75rem; font-weight:600; border:1px solid var(--border); cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:.5rem; font-family:inherit; font-size:.9rem; }
+.btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+.btn-danger { background:var(--danger); color:#fff; padding:.5rem 1rem; border-radius:.5rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; font-family:inherit; font-size:.85rem; }
+.btn-danger:hover { filter:brightness(1.1); }
+.btn-sm { padding:.4rem .8rem; font-size:.8rem; border-radius:.5rem; }
+.input { width:100%; padding:.7rem 1rem; border-radius:.75rem; border:1px solid var(--border); background:var(--card); color:var(--fg); font-family:inherit; font-size:.95rem; transition:border-color .2s; outline:none; }
+.input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(249,115,22,.15); }
+.input::placeholder { color:var(--muted); }
+.badge { display:inline-flex; align-items:center; padding:.15rem .6rem; border-radius:9999px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.badge-success { background:rgba(16,185,129,.15); color:var(--success); }
+.badge-warning { background:rgba(249,115,22,.15); color:var(--accent); }
+.badge-danger { background:rgba(239,68,68,.15); color:var(--danger); }
+.badge-info { background:rgba(59,130,246,.15); color:#3B82F6; }
+.toast { animation:toastIn .4s ease both; }
+.toast.removing { animation:toastOut .3s ease both; }
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); backdrop-filter:blur(4px); z-index:50; animation:fadeIn .2s ease; }
+.cart-sidebar { position:fixed; top:0; right:0; bottom:0; width:min(420px,90vw); background:var(--card); z-index:60; animation:slideRight .3s ease; box-shadow:-10px 0 40px rgba(0,0,0,.15); overflow-y:auto; }
+.step-dot { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; transition:all .3s; flex-shrink:0; }
+.step-dot.active { background:var(--accent); color:#fff; }
+.step-dot.done { background:var(--success); color:#fff; }
+.step-dot.pending { background:var(--surface); color:var(--muted); border:2px solid var(--border); }
+.step-line { height:2px; flex:1; min-width:8px; background:var(--border); transition:background .3s; }
+.step-line.done { background:var(--success); }
+.cat-pill { padding:.4rem 1rem; border-radius:9999px; cursor:pointer; font-size:.85rem; font-weight:500; border:1px solid var(--border); transition:all .2s; white-space:nowrap; background:var(--card); color:var(--fg); }
+.cat-pill.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.cat-pill:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+.qty-btn { width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:var(--card); color:var(--fg); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.9rem; transition:all .15s; }
+.qty-btn:hover { border-color:var(--accent); color:var(--accent); }
+.modal-content { background:var(--card); border-radius:1rem; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; animation:scaleIn .3s ease; }
+.stat-glow { position:relative; overflow:hidden; }
+.stat-glow::before { content:''; position:absolute; top:-50%; right:-50%; width:100%; height:100%; background:radial-gradient(circle,rgba(249,115,22,.1) 0%,transparent 70%); pointer-events:none; }
+.tab { padding:.5rem 1rem; border-radius:.5rem; cursor:pointer; font-weight:500; transition:all .2s; color:var(--muted); background:transparent; border:none; font-family:inherit; font-size:.9rem; }
+.tab.active { background:var(--accent); color:#fff; }
+.tab:hover:not(.active) { color:var(--fg); background:var(--surface); }
+.notif-dot { position:absolute; top:-2px; right:-2px; width:8px; height:8px; background:var(--danger); border-radius:50%; animation:pulseGlow 2s infinite; }
+@media(max-width:768px) { .hero-bg { background-size:300% 300%; } }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:0.01ms!important; transition-duration:0.01ms!important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast-container" style="position:fixed;top:1rem;right:1rem;z-index:100;display:flex;flex-direction:column;gap:.5rem;pointer-events:none;"></div>
+
+<script>
+/* ===================== DATA ===================== */
+var CUISINES = ['Chinese','Italian','Indian','Mexican','Japanese','American','Thai','Mediterranean'];
+var FOOD_CATEGORIES = ['Appetizers','Main Course','Noodles & Rice','Beverages','Desserts','Sides'];
+
+var RESTAURANTS = [
+  {id:'r1',name:'The Golden Wok',image:'https://picsum.photos/seed/goldwok/600/400.jpg',cuisine:'Chinese',rating:4.5,reviewCount:234,deliveryTime:'25-35',minOrder:200,categories:['Appetizers','Main Course','Noodles & Rice','Beverages'],description:'Authentic Szechuan and Cantonese dishes crafted by master chefs.',address:'123 Dragon Lane, Chinatown',phone:'+1-555-0101',isOpen:true,featured:true,adminId:'admin1',approved:true,discount:15},
+  {id:'r2',name:'Bella Napoli',image:'https://picsum.photos/seed/napoli2/600/400.jpg',cuisine:'Italian',rating:4.7,reviewCount:412,deliveryTime:'30-45',minOrder:300,categories:['Appetizers','Main Course','Sides','Desserts'],description:'Wood-fired pizzas and handmade pasta straight from Nonna\'s kitchen.',address:'456 Via Roma, Little Italy',phone:'+1-555-0102',isOpen:true,featured:true,adminId:'admin2',approved:true,discount:0},
+  {id:'r3',name:'Spice Garden',image:'https://picsum.photos/seed/spicegar/600/400.jpg',cuisine:'Indian',rating:4.3,reviewCount:189,deliveryTime:'20-30',minOrder:150,categories:['Appetizers','Main Course','Noodles & Rice','Sides','Beverages'],description:'Rich curries, smoky tandoori, and fragrant biryanis.',address:'789 Curry Street',phone:'+1-555-0103',isOpen:true,featured:true,adminId:'admin3',approved:true,discount:20},
+  {id:'r4',name:'Sakura Sushi',image:'https://picsum.photos/seed/sakuras/600/400.jpg',cuisine:'Japanese',rating:4.8,reviewCount:567,deliveryTime:'35-50',minOrder:400,categories:['Appetizers','Main Course','Sides','Beverages'],description:'Premium sushi and sashimi flown in daily.',address:'321 Cherry Blossom Ave',phone:'+1-555-0104',isOpen:true,featured:false,adminId:'admin4',approved:true,discount:0},
+  {id:'r5',name:'El Fuego',image:'https://picsum.photos/seed/elfuego/600/400.jpg',cuisine:'Mexican',rating:4.2,reviewCount:156,deliveryTime:'20-30',minOrder:180,categories:['Appetizers','Main Course','Sides','Beverages','Desserts'],description:'Bold flavors from Mexico City.',address:'555 Fiesta Blvd',phone:'+1-555-0105',isOpen:true,featured:false,adminId:'admin5',approved:true,discount:10},
+  {id:'r6',name:'Bangkok Street',image:'https://picsum.photos/seed/bangkokst/600/400.jpg',cuisine:'Thai',rating:4.4,reviewCount:298,deliveryTime:'25-35',minOrder:200,categories:['Appetizers','Main Course','Noodles & Rice','Beverages','Desserts'],description:'Authentic Thai street food.',address:'888 Lemongrass Lane',phone:'+1-555-0106',isOpen:false,featured:false,adminId:'admin6',approved:true,discount:0},
+  {id:'r7',name:'The Smokehouse',image:'https://picsum.photos/seed/smokehs/600/400.jpg',cuisine:'American',rating:4.6,reviewCount:345,deliveryTime:'30-40',minOrder:250,categories:['Appetizers','Main Course','Sides','Beverages','Desserts'],description:'Low and slow smoked meats, craft burgers.',address:'777 BBQ Road',phone:'+1-555-0107',isOpen:true,featured:false,adminId:'admin7',approved:false,discount:0},
+  {id:'r8',name:'Olive & Thyme',image:'https://picsum.photos/seed/olivethm/600/400.jpg',cuisine:'Mediterranean',rating:4.5,reviewCount:210,deliveryTime:'25-40',minOrder:220,categories:['Appetizers','Main Course','Sides','Desserts'],description:'Fresh mezze, grilled meats, and Mediterranean bowls.',address:'999 Olive Grove Way',phone:'+1-555-0108',isOpen:true,featured:false,adminId:'admin8',approved:true,discount:5}
+];
+
+var FOODS = [
+  {id:'f1',restaurantId:'r1',name:'Kung Pao Chicken',image:'https://picsum.photos/seed/kungpao1/400/300.jpg',price:280,originalPrice:350,category:'Main Course',rating:4.7,reviewCount:89,description:'Spicy stir-fried chicken with peanuts, dried chilies, and Szechuan peppercorns.',ingredients:['Chicken','Peanuts','Chilies','Soy Sauce'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:20},
+  {id:'f2',restaurantId:'r1',name:'Spring Rolls',image:'https://picsum.photos/seed/springrl/400/300.jpg',price:150,originalPrice:0,category:'Appetizers',rating:4.3,reviewCount:56,description:'Crispy vegetable spring rolls with sweet chili sauce.',ingredients:['Cabbage','Carrots','Glass Noodles'],isVeg:true,isAvailable:true,isPopular:true,preparationTime:12},
+  {id:'f3',restaurantId:'r1',name:'Fried Rice',image:'https://picsum.photos/seed/friedrc/400/300.jpg',price:220,originalPrice:0,category:'Noodles & Rice',rating:4.4,reviewCount:112,description:'Wok-tossed fried rice with eggs and vegetables.',ingredients:['Rice','Eggs','Vegetables','Soy Sauce'],isVeg:false,isAvailable:true,isPopular:false,preparationTime:15},
+  {id:'f4',restaurantId:'r1',name:'Dim Sum Platter',image:'https://picsum.photos/seed/dimsum1/400/300.jpg',price:350,originalPrice:420,category:'Appetizers',rating:4.8,reviewCount:67,description:'Assorted steamed dumplings.',ingredients:['Wonton Wrappers','Pork','Shrimp','Ginger'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:18},
+  {id:'f5',restaurantId:'r1',name:'Bubble Tea',image:'https://picsum.photos/seed/bubtea/400/300.jpg',price:120,originalPrice:0,category:'Beverages',rating:4.2,reviewCount:45,description:'Classic milk tea with tapioca pearls.',ingredients:['Black Tea','Milk','Tapioca'],isVeg:true,isAvailable:true,isPopular:false,preparationTime:5},
+  {id:'f6',restaurantId:'r2',name:'Margherita Pizza',image:'https://picsum.photos/seed/margher/400/300.jpg',price:380,originalPrice:0,category:'Main Course',rating:4.9,reviewCount:234,description:'Classic wood-fired pizza with fresh mozzarella and basil.',ingredients:['Dough','Tomatoes','Mozzarella','Basil'],isVeg:true,isAvailable:true,isPopular:true,preparationTime:25},
+  {id:'f7',restaurantId:'r2',name:'Carbonara',image:'https://picsum.photos/seed/carbona/400/300.jpg',price:420,originalPrice:0,category:'Main Course',rating:4.7,reviewCount:178,description:'Silky spaghetti with guanciale, egg yolk, and pecorino.',ingredients:['Spaghetti','Guanciale','Egg Yolk','Pecorino'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:20},
+  {id:'f8',restaurantId:'r2',name:'Bruschetta',image:'https://picsum.photos/seed/brusche/400/300.jpg',price:180,originalPrice:0,category:'Appetizers',rating:4.4,reviewCount:89,description:'Toasted ciabatta with fresh tomatoes and basil.',ingredients:['Ciabatta','Tomatoes','Garlic','Basil'],isVeg:true,isAvailable:true,isPopular:false,preparationTime:10},
+  {id:'f9',restaurantId:'r2',name:'Tiramisu',image:'https://picsum.photos/seed/tirami1/400/300.jpg',price:250,originalPrice:0,category:'Desserts',rating:4.8,reviewCount:156,description:'Espresso-soaked ladyfingers with mascarpone cream.',ingredients:['Ladyfingers','Espresso','Mascarpone','Cocoa'],isVeg:true,isAvailable:true,isPopular:true,preparationTime:8},
+  {id:'f10',restaurantId:'r2',name:'Garlic Bread',image:'https://picsum.photos/seed/garlicb/400/300.jpg',price:120,originalPrice:0,category:'Sides',rating:4.3,reviewCount:67,description:'Crispy buttery bread with roasted garlic.',ingredients:['Baguette','Butter','Garlic'],isVeg:true,isAvailable:true,isPopular:false,preparationTime:8},
+  {id:'f11',restaurantId:'r3',name:'Butter Chicken',image:'https://picsum.photos/seed/btrchk/400/300.jpg',price:320,originalPrice:380,category:'Main Course',rating:4.8,reviewCount:345,description:'Tender chicken in rich creamy tomato-butter sauce.',ingredients:['Chicken','Tomato','Butter','Cream','Spices'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:25},
+  {id:'f12',restaurantId:'r3',name:'Paneer Tikka',image:'https://picsum.photos/seed/panrtik/400/300.jpg',price:260,originalPrice:0,category:'Appetizers',rating:4.5,reviewCount:198,description:'Chargrilled cottage cheese in spiced yogurt.',ingredients:['Paneer','Yogurt','Spices','Peppers'],isVeg:true,isAvailable:true,isPopular:true,preparationTime:20},
+  {id:'f13',restaurantId:'r3',name:'Hyderabadi Biryani',image:'https://picsum.photos/seed/biryani1/400/300.jpg',price:350,originalPrice:0,category:'Noodles & Rice',rating:4.9,reviewCount:456,description:'Fragrant basmati rice layered with spiced meat and saffron.',ingredients:['Basmati Rice','Chicken','Saffron','Spices'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:35},
+  {id:'f14',restaurantId:'r3',name:'Garlic Naan',image:'https://picsum.photos/seed/garlnan/400/300.jpg',price:60,originalPrice:0,category:'Sides',rating:4.4,reviewCount:234,description:'Soft tandoor-baked flatbread with garlic butter.',ingredients:['Flour','Garlic','Butter','Yogurt'],isVeg:true,isAvailable:true,isPopular:true,preparationTime:8},
+  {id:'f15',restaurantId:'r3',name:'Mango Lassi',image:'https://picsum.photos/seed/mangols/400/300.jpg',price:100,originalPrice:0,category:'Beverages',rating:4.6,reviewCount:123,description:'Chilled yogurt smoothie with Alphonso mangoes.',ingredients:['Yogurt','Mango','Sugar','Cardamom'],isVeg:true,isAvailable:true,isPopular:false,preparationTime:5},
+  {id:'f16',restaurantId:'r4',name:'Dragon Roll',image:'https://picsum.photos/seed/dragrol/400/300.jpg',price:580,originalPrice:0,category:'Main Course',rating:4.9,reviewCount:289,description:'Inside-out roll with shrimp tempura and eel sauce.',ingredients:['Sushi Rice','Shrimp','Avocado','Eel Sauce'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:15},
+  {id:'f17',restaurantId:'r4',name:'Salmon Sashimi',image:'https://picsum.photos/seed/salmsash/400/300.jpg',price:650,originalPrice:0,category:'Appetizers',rating:4.8,reviewCount:198,description:'8 pieces of premium fresh salmon.',ingredients:['Salmon','Wasabi','Ginger'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:5},
+  {id:'f18',restaurantId:'r4',name:'Miso Soup',image:'https://picsum.photos/seed/misosp/400/300.jpg',price:150,originalPrice:0,category:'Beverages',rating:4.3,reviewCount:87,description:'Traditional soup with miso paste, tofu, and seaweed.',ingredients:['Miso','Tofu','Wakame','Dashi'],isVeg:true,isAvailable:true,isPopular:false,preparationTime:8},
+  {id:'f19',restaurantId:'r4',name:'Edamame',image:'https://picsum.photos/seed/edamam1/400/300.jpg',price:120,originalPrice:0,category:'Sides',rating:4.2,reviewCount:65,description:'Steamed young soybeans lightly salted.',ingredients:['Edamame','Sea Salt'],isVeg:true,isAvailable:true,isPopular:false,preparationTime:6},
+  {id:'f20',restaurantId:'r5',name:'Street Tacos',image:'https://picsum.photos/seed/strtaco/400/300.jpg',price:240,originalPrice:0,category:'Main Course',rating:4.6,reviewCount:178,description:'Three soft corn tacos with carne asada and salsa.',ingredients:['Tortillas','Carne Asada','Cilantro','Salsa'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:15},
+  {id:'f21',restaurantId:'r5',name:'Burrito Bowl',image:'https://picsum.photos/seed/burritb/400/300.jpg',price:300,originalPrice:350,category:'Main Course',rating:4.5,reviewCount:145,description:'Rice bowl with beans, chicken, guacamole, and cheese.',ingredients:['Rice','Beans','Chicken','Guacamole','Cheese'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:12},
+  {id:'f22',restaurantId:'r5',name:'Churros',image:'https://picsum.photos/seed/churro1/400/300.jpg',price:160,originalPrice:0,category:'Desserts',rating:4.7,reviewCount:112,description:'Crispy dough sticks with cinnamon sugar and chocolate.',ingredients:['Flour','Butter','Cinnamon','Chocolate'],isVeg:true,isAvailable:true,isPopular:true,preparationTime:12},
+  {id:'f23',restaurantId:'r5',name:'Guacamole & Chips',image:'https://picsum.photos/seed/guacchp/400/300.jpg',price:180,originalPrice:0,category:'Appetizers',rating:4.4,reviewCount:89,description:'Fresh guacamole with crispy tortilla chips.',ingredients:['Avocado','Lime','Onions','Chips'],isVeg:true,isAvailable:true,isPopular:false,preparationTime:8},
+  {id:'f24',restaurantId:'r6',name:'Pad Thai',image:'https://picsum.photos/seed/padthai/400/300.jpg',price:260,originalPrice:0,category:'Noodles & Rice',rating:4.7,reviewCount:234,description:'Stir-fried rice noodles with shrimp and tamarind sauce.',ingredients:['Rice Noodles','Shrimp','Tamarind','Peanuts'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:15},
+  {id:'f25',restaurantId:'r6',name:'Green Curry',image:'https://picsum.photos/seed/grncury/400/300.jpg',price:300,originalPrice:0,category:'Main Course',rating:4.5,reviewCount:167,description:'Creamy coconut curry with chicken and basil.',ingredients:['Green Curry','Coconut Milk','Chicken','Basil'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:20},
+  {id:'f26',restaurantId:'r6',name:'Mango Sticky Rice',image:'https://picsum.photos/seed/mangstk/400/300.jpg',price:180,originalPrice:0,category:'Desserts',rating:4.8,reviewCount:145,description:'Sweet sticky rice with mango and coconut cream.',ingredients:['Sticky Rice','Mango','Coconut Cream'],isVeg:true,isAvailable:true,isPopular:true,preparationTime:10},
+  {id:'f27',restaurantId:'r7',name:'Smoked Brisket',image:'https://picsum.photos/seed/smokbrk/400/300.jpg',price:520,originalPrice:0,category:'Main Course',rating:4.8,reviewCount:267,description:'12-hour slow-smoked beef brisket with BBQ sauce.',ingredients:['Beef Brisket','BBQ Rub','Oak Wood'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:15},
+  {id:'f28',restaurantId:'r7',name:'Smash Burger',image:'https://picsum.photos/seed/smshbrg/400/300.jpg',price:320,originalPrice:0,category:'Main Course',rating:4.7,reviewCount:198,description:'Double smashed patties with cheese and special sauce.',ingredients:['Beef','Cheese','Pickles','Special Sauce'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:12},
+  {id:'f29',restaurantId:'r7',name:'Mac & Cheese',image:'https://picsum.photos/seed/macchs1/400/300.jpg',price:200,originalPrice:0,category:'Sides',rating:4.5,reviewCount:134,description:'Creamy three-cheese macaroni with breadcrumb crust.',ingredients:['Macaroni','Cheddar','Gruyere','Breadcrumbs'],isVeg:true,isAvailable:true,isPopular:true,preparationTime:15},
+  {id:'f30',restaurantId:'r8',name:'Shawarma Bowl',image:'https://picsum.photos/seed/shawrmb/400/300.jpg',price:280,originalPrice:0,category:'Main Course',rating:4.6,reviewCount:145,description:'Spiced chicken shawarma over hummus with tahini.',ingredients:['Chicken','Hummus','Tahini','Pickles'],isVeg:false,isAvailable:true,isPopular:true,preparationTime:15},
+  {id:'f31',restaurantId:'r8',name:'Falafel Wrap',image:'https://picsum.photos/seed/falafw1/400/300.jpg',price:220,originalPrice:0,category:'Main Course',rating:4.5,reviewCount:112,description:'Crispy falafel in warm pita with tahini sauce.',ingredients:['Falafel','Pita','Tahini','Vegetables'],isVeg:true,isAvailable:true,isPopular:true,preparationTime:10},
+  {id:'f32',restaurantId:'r8',name:'Hummus Platter',image:'https://picsum.photos/seed/humpltr/400/300.jpg',price:200,originalPrice:0,category:'Appetizers',rating:4.4,reviewCount:89,description:'Creamy hummus with warm pita and olives.',ingredients:['Chickpeas','Tahini','Lemon','Pita'],isVeg:true,isAvailable:true,isPopular:false,preparationTime:8}
+];
+
+var COUPONS = [
+  {code:'WELCOME20',discount:20,type:'percent',minOrder:300,maxDiscount:150,description:'20% off up to Rs.150',isActive:true},
+  {code:'FLAT50',discount:50,type:'flat',minOrder:250,maxDiscount:50,description:'Flat Rs.50 off',isActive:true},
+  {code:'FEAST100',discount:100,type:'flat',minOrder:500,maxDiscount:100,description:'Flat Rs.100 off above Rs.500',isActive:true}
+];
+
+var DEMO_USERS = [
+  {id:'u1',name:'Alex Johnson',email:'customer@demo.com',password:'password123',role:'customer',phone:'+1-555-1001',address:'42 Maple Drive, Downtown',avatar:'https://picsum.photos/seed/alexj/200/200.jpg',joinedDate:'2024-01-15'},
+  {id:'u2',name:'Maria Chen',email:'admin@demo.com',password:'password123',role:'restaurant_admin',phone:'+1-555-2001',address:'123 Dragon Lane',avatar:'https://picsum.photos/seed/mariac/200/200.jpg',joinedDate:'2023-11-20',restaurantId:'r1'},
+  {id:'u3',name:'Robert Williams',email:'super@demo.com',password:'password123',role:'super_admin',phone:'+1-555-3001',address:'1 Admin Tower',avatar:'https://picsum.photos/seed/robertw/200/200.jpg',joinedDate:'2023-06-01'},
+  {id:'u4',name:'Sarah Miller',email:'sarah@demo.com',password:'password123',role:'customer',phone:'+1-555-1002',address:'78 Oak Street',avatar:'https://picsum.photos/seed/sarahm/200/200.jpg',joinedDate:'2024-02-10'},
+  {id:'u5',name:'James Park',email:'james@demo.com',password:'password123',role:'restaurant_admin',phone:'+1-555-2002',address:'456 Via Roma',avatar:'https://picsum.photos/seed/jamesp/200/200.jpg',joinedDate:'2023-12-05',restaurantId:'r2'}
+];
+
+var SAMPLE_ORDERS = [
+  {id:'ORD-20240115-001',userId:'u1',restaurantId:'r1',items:[{foodId:'f1',name:'Kung Pao Chicken',price:280,qty:2},{foodId:'f2',name:'Spring Rolls',price:150,qty:1}],subtotal:710,deliveryFee:40,discount:0,total:750,status:'delivered',paymentMethod:'card',address:'42 Maple Drive, Downtown',placedAt:'2024-01-15T12:30:00',deliveredAt:'2024-01-15T13:05:00',rating:5,review:'Amazing food! Perfectly spiced.'},
+  {id:'ORD-20240118-002',userId:'u1',restaurantId:'r2',items:[{foodId:'f6',name:'Margherita Pizza',price:380,qty:1},{foodId:'f9',name:'Tiramisu',price:250,qty:1}],subtotal:630,deliveryFee:40,discount:50,total:620,status:'delivered',paymentMethod:'card',address:'42 Maple Drive, Downtown',placedAt:'2024-01-18T19:00:00',deliveredAt:'2024-01-18T19:40:00',rating:4,review:'Great pizza, tiramisu was heavenly!'},
+  {id:'ORD-20240120-003',userId:'u1',restaurantId:'r3',items:[{foodId:'f11',name:'Butter Chicken',price:320,qty:1},{foodId:'f13',name:'Hyderabadi Biryani',price:350,qty:1},{foodId:'f14',name:'Garlic Naan',price:60,qty:2}],subtotal:790,deliveryFee:30,discount:100,total:720,status:'delivered',paymentMethod:'cod',address:'42 Maple Drive, Downtown',placedAt:'2024-01-20T20:15:00',deliveredAt:'2024-01-20T20:50:00',rating:5,review:'Best biryani in town!'},
+  {id:'ORD-20240122-004',userId:'u4',restaurantId:'r4',items:[{foodId:'f16',name:'Dragon Roll',price:580,qty:1},{foodId:'f17',name:'Salmon Sashimi',price:650,qty:1}],subtotal:1230,deliveryFee:50,discount:0,total:1280,status:'delivered',paymentMethod:'card',address:'78 Oak Street',placedAt:'2024-01-22T13:00:00',deliveredAt:'2024-01-22T13:45:00',rating:5,review:'Premium quality sushi.'},
+  {id:'ORD-20240125-005',userId:'u1',restaurantId:'r1',items:[{foodId:'f4',name:'Dim Sum Platter',price:350,qty:1},{foodId:'f5',name:'Bubble Tea',price:120,qty:2}],subtotal:590,deliveryFee:40,discount:0,total:630,status:'preparing',paymentMethod:'card',address:'42 Maple Drive, Downtown',placedAt:'2024-01-25T18:30:00'}
+];
+
+/* ===================== STATE ===================== */
+var S = {
+  user:null, cart:[], orders:[], users:[], favorites:{restaurants:[],foods:[]},
+  theme:'light', cartOpen:false, appliedCoupon:null
+};
+
+function initState() {
+  try {
+    var saved = localStorage.getItem('foodFleetApp');
+    if (saved) { var p = JSON.parse(saved); for(var k in p) S[k]=p[k]; }
+  } catch(e){}
+  if (!S.orders || S.orders.length < SAMPLE_ORDERS.length) S.orders = JSON.parse(JSON.stringify(SAMPLE_ORDERS));
+  if (!S.users || S.users.length < DEMO_USERS.length) S.users = JSON.parse(JSON.stringify(DEMO_USERS));
+  if (!S.favorites) S.favorites = {restaurants:[],foods:[]};
+  if (S.theme === 'dark') document.documentElement.classList.add('dark');
+  else document.documentElement.classList.remove('dark');
+}
+
+function saveState() {
+  var d = {}; for(var k in S) { if(k!=='cartOpen') d[k]=S[k]; }
+  localStorage.setItem('foodFleetApp', JSON.stringify(d));
+}
+
+function getInitials(n) { return n.split(' ').map(function(w){return w[0]}).join('').toUpperCase().slice(0,2); }
+function fmtPrice(p) { return 'Rs.' + p.toLocaleString('en-IN'); }
+function timeAgo(ds) { var d=Date.now()-new Date(ds).getTime(); var m=Math.floor(d/60000); if(m<60) return m+'m ago'; var h=Math.floor(m/60); if(h<24) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
+function statusColor(s) { return {placed:'badge-info',accepted:'badge-warning',preparing:'badge-warning',out_for_delivery:'badge-info',delivered:'badge-success',cancelled:'badge-danger'}[s]||'badge-info'; }
+function statusLabel(s) { return {placed:'Placed',accepted:'Accepted',preparing:'Preparing',out_for_delivery:'Out for Delivery',delivered:'Delivered',cancelled:'Cancelled'}[s]||s; }
+function stepIdx(s) { return {placed:0,accepted:1,preparing:2,out_for_delivery:3,delivered:4,cancelled:-1}[s]??-1; }
+function stars(r) { var h=''; for(var i=1;i<=5;i++) h+='<i class="fas fa-star text-sm '+(i<=Math.round(r)?'text-amber-400':'text-gray-300 dark:text-gray-600')+'"></i>'; return h; }
+function isFav(type,id) { return S.favorites[type] && S.favorites[type].indexOf(id)>-1; }
+function toggleFav(type,id) { if(!S.favorites[type]) S.favorites[type]=[]; var i=S.favorites[type].indexOf(id); if(i>-1) S.favorites[type].splice(i,1); else S.favorites[type].push(id); saveState(); render(); }
+function cartTotal() { var sub=S.cart.reduce(function(s,c){return s+c.price*c.qty},0); var df=sub>0?40:0; var disc=0; if(S.appliedCoupon){var c=S.appliedCoupon; disc=c.type==='percent'?Math.min(sub*c.discount/100,c.maxDiscount):c.discount;} return {subtotal:sub,deliveryFee:df,discount:disc,total:Math.max(0,sub+df-disc)}; }
+function findRest(id) { return RESTAURANTS.find(function(r){return r.id===id}); }
+function findFood(id) { return FOODS.find(function(f){return f.id===id}); }
+
+/* ===================== TOAST ===================== */
+function showToast(msg, type) {
+  type = type || 'info';
+  var c = document.getElementById('toast-container');
+  var colors = {success:'border-l-4 border-emerald-500',error:'border-l-4 border-red-500',info:'border-l-4 border-blue-500',warning:'border-l-4 border-amber-500'};
+  var icons = {success:'fa-check-circle text-emerald-500',error:'fa-times-circle text-red-500',info:'fa-info-circle text-blue-500',warning:'fa-exclamation-circle text-amber-500'};
+  var el = document.createElement('div');
+  el.className = 'toast ' + (colors[type]||colors.info) + ' flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg min-w-[280px]';
+  el.style.cssText = 'background:var(--card);color:var(--fg);pointer-events:auto;';
+  el.innerHTML = '<i class="fas '+(icons[type]||icons.info)+'"></i><span class="text-sm font-medium flex-1">'+msg+'</span><button onclick="this.parentElement.classList.add(\'removing\');setTimeout(function(){this.parentElement.remove()}.bind(this),300)" style="color:var(--muted);background:none;border:none;cursor:pointer;"><i class="fas fa-times text-xs"></i></button>';
+  c.appendChild(el);
+  setTimeout(function(){ if(el.parentElement){el.classList.add('removing');setTimeout(function(){el.remove()},300)} },3500);
+}
+
+/* ===================== ROUTER ===================== */
+var routes = {};
+function nav(path) { window.location.hash = '#' + path; }
+function initRouter() {
+  window.addEventListener('hashchange', resolveRoute);
+  resolveRoute();
+}
+function resolveRoute() {
+  var hash = window.location.hash.slice(1) || 'home';
+  var parts = hash.split('/');
+  var path = parts[0];
+  var params = parts.slice(1);
+  window.scrollTo({top:0,behavior:'smooth'});
+  var fn = routes[path];
+  if (fn) fn.apply(null, params);
+  else if (routes['home']) routes['home']();
+}
+
+/* ===================== CART ===================== */
+function addToCart(foodId) {
+  var f = findFood(foodId);
+  if (!f) return;
+  var ex = S.cart.find(function(c){return c.id===f.id});
+  if (ex) ex.qty++; else S.cart.push({id:f.id,name:f.name,image:f.image,price:f.price,restaurantId:f.restaurantId,isVeg:f.isVeg,qty:1});
+  saveState(); S.cartOpen=true; render();
+  showToast(f.name + ' added to cart','success');
+}
+function updateQty(foodId, delta) {
+  var item = S.cart.find(function(c){return c.id===foodId});
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty<=0) S.cart = S.cart.filter(function(c){return c.id!==foodId});
+  saveState(); render();
+}
+function clearCart() { S.cart=[]; S.appliedCoupon=null; saveState(); render(); }
+function applyCoupon(code) {
+  var coupon = COUPONS.find(function(c){return c.code===code.toUpperCase() && c.isActive});
+  if (!coupon) return 'Invalid or expired coupon';
+  var sub = S.cart.reduce(function(s,c){return s+c.price*c.qty},0);
+  if (sub < coupon.minOrder) return 'Minimum order of Rs.'+coupon.minOrder+' required';
+  S.appliedCoupon = coupon; saveState(); render();
+  showToast('Coupon applied: '+coupon.description,'success'); return null;
+}
+
+/* ===================== AUTH ===================== */
+function login(email, pw) {
+  var u = S.users.find(function(u){return u.email===email && u.password===pw});
+  if (!u) return false;
+  S.user = JSON.parse(JSON.stringify(u)); saveState(); render();
+  showToast('Welcome back, '+u.name+'!','success'); return true;
+}
+function register(data) {
+  if (S.users.find(function(u){return u.email===data.email})) return 'Email already exists';
+  var nu = {id:'u'+Date.now(),name:data.name,email:data.email,password:data.password,role:'customer',phone:data.phone||'',address:data.address||'',avatar:'https://picsum.photos/seed/'+Date.now()+'/200/200.jpg',joinedDate:new Date().toISOString().split('T')[0]};
+  S.users.push(nu); S.user=JSON.parse(JSON.stringify(nu)); saveState(); render();
+  showToast('Account created successfully!','success'); return null;
+}
+function logout() { S.user=null; S.cart=[]; S.appliedCoupon=null; saveState(); window.location.hash='#home'; render(); showToast('Logged out','info'); }
+
+/* ===================== RENDER ===================== */
+function render() {
+  var app = document.getElementById('app');
+  var hash = window.location.hash.slice(1) || 'home';
+  var parts = hash.split('/');
+  var path = parts[0];
+  var fn = routes[path];
+  if (fn) {
+    app.innerHTML = fn.apply(null, parts.slice(1));
+  } else {
+    app.innerHTML = routes['home']();
+  }
+  // Init charts after render
+  setTimeout(initPageCharts, 50);
+}
+
+/* ===================== NAVBAR ===================== */
+function navbar() {
+  var u = S.user;
+  var cc = S.cart.reduce(function(s,c){return s+c.qty},0);
+  var h = '<nav style="background:var(--card);border-bottom:1px solid var(--border);" class="sticky top-0 z-40">';
+  h += '<div class="max-w-7xl mx-auto px-4 sm:px-6"><div class="flex items-center justify-between h-16">';
+  h += '<a href="#home" class="flex items-center gap-2"><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/20"><i class="fas fa-fire-flame-curved text-white text-sm"></i></div><span class="font-display font-bold text-xl" style="color:var(--fg);">Food<span class="text-brand-500">Fleet</span></span></a>';
+  h += '<div class="hidden md:flex items-center gap-1">';
+  h += '<a href="#home" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors" style="color:var(--muted);">Home</a>';
+  h += '<a href="#restaurants" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors" style="color:var(--muted);">Restaurants</a>';
+  if(u){
+    if(u.role==='customer'){ h+='<a href="#orders" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);">My Orders</a><a href="#favorites" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);">Favorites</a>'; }
+    if(u.role==='restaurant_admin') h+='<a href="#admin-dashboard" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);">Dashboard</a>';
+    if(u.role==='super_admin') h+='<a href="#super-dashboard" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);">Dashboard</a>';
+  }
+  h += '</div>';
+  h += '<div class="flex items-center gap-2">';
+  h += '<button onclick="toggleTheme()" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);" aria-label="Toggle theme"><i class="fas '+(S.theme==='dark'?'fa-sun text-amber-400':'fa-moon')+'"></i></button>';
+  if(u){
+    if(u.role==='customer') h+='<button onclick="S.cartOpen=true;render()" class="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);"><i class="fas fa-shopping-bag"></i>'+(cc>0?'<span class="absolute -top-1 -right-1 w-5 h-5 bg-brand-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">'+cc+'</span>':'')+'</button>';
+    h+='<button class="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);" onclick="showToast(\'No new notifications\',\'info\')"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>';
+    h+='<div class="relative group"><button class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-900/20"><img src="'+u.avatar+'" class="w-7 h-7 rounded-lg object-cover" onerror="this.style.display=\'none\'"><span class="text-sm font-medium hidden sm:block" style="color:var(--fg);">'+u.name.split(' ')[0]+'</span><i class="fas fa-chevron-down text-[10px]" style="color:var(--muted);"></i></button>';
+    h+='<div class="absolute right-0 top-full mt-2 w-56 rounded-xl shadow-xl border py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all" style="background:var(--card);border-color:var(--border);"><div class="px-4 py-2 border-b" style="border-color:var(--border);"><p class="text-sm font-semibold" style="color:var(--fg);">'+u.name+'</p><p class="text-xs" style="color:var(--muted);">'+u.email+'</p><span class="badge badge-warning mt-1">'+u.role.replace('_',' ')+'</span></div>';
+    h+='<a href="#profile" class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--fg);"><i class="fas fa-user-circle w-4" style="color:var(--muted);"></i>Profile</a>';
+    if(u.role==='customer') h+='<a href="#orders" class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--fg);"><i class="fas fa-receipt w-4" style="color:var(--muted);"></i>My Orders</a><a href="#favorites" class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--fg);"><i class="fas fa-heart w-4" style="color:var(--muted);"></i>Favorites</a>';
+    if(u.role==='restaurant_admin') h+='<a href="#admin-dashboard" class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--fg);"><i class="fas fa-chart-line w-4" style="color:var(--muted);"></i>Dashboard</a>';
+    if(u.role==='super_admin') h+='<a href="#super-dashboard" class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--fg);"><i class="fas fa-shield-halved w-4" style="color:var(--muted);"></i>Admin Panel</a>';
+    h+='<div class="border-t my-1" style="border-color:var(--border);"></div><button onclick="logout()" class="flex items-center gap-3 px-4 py-2 text-sm w-full text-left hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"><i class="fas fa-sign-out-alt w-4"></i>Logout</button></div></div>';
+  } else {
+    h+='<a href="#login" class="btn-secondary btn-sm">Log In</a><a href="#register" class="btn-primary btn-sm">Sign Up</a>';
+  }
+  h += '<button onclick="document.getElementById(\'mob-menu\').classList.toggle(\'hidden\')" class="md:hidden w-9 h-9 rounded-lg flex items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);"><i class="fas fa-bars"></i></button>';
+  h += '</div></div>';
+  h += '<div id="mob-menu" class="hidden md:hidden pb-4 border-t pt-3" style="border-color:var(--border);"><div class="flex flex-col gap-1"><a href="#home" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--fg);">Home</a><a href="#restaurants" class="px-3 py-2 rounded-lg text-sm font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--fg);">Restaurants</a>';
+  if(u && u.role==='customer') h+='<a href="#orders" class="px-3 py-2 rounded-lg text-sm" style="color:var(--fg);">My Orders</a><a href="#favorites" class="px-3 py-2 rounded-lg text-sm" style="color:var(--fg);">Favorites</a>';
+  if(u && u.role!=='customer') h+='<a href="#'+(u.role==='restaurant_admin'?'admin':'super')+'-dashboard" class="px-3 py-2 rounded-lg text-sm" style="color:var(--fg);">Dashboard</a>';
+  h += '</div></div></div></nav>';
+  return h;
+}
+
+function toggleTheme() { S.theme=S.theme==='dark'?'light':'dark'; document.documentElement.classList.toggle('dark',S.theme==='dark'); saveState(); render(); }
+
+/* ===================== CART SIDEBAR ===================== */
+function cartSidebar() {
+  if (!S.cartOpen || !S.user || S.user.role!=='customer') return '';
+  var t = cartTotal();
+  var h = '<div class="overlay" onclick="S.cartOpen=false;saveState();render()"></div>';
+  h += '<div class="cart-sidebar flex flex-col">';
+  h += '<div class="flex items-center justify-between p-5 border-b" style="border-color:var(--border);"><h3 class="font-display text-xl font-bold" style="color:var(--fg);">Your Cart</h3><button onclick="S.cartOpen=false;saveState();render()" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);"><i class="fas fa-times"></i></button></div>';
+  if (S.cart.length===0) {
+    h += '<div class="flex-1 flex flex-col items-center justify-center p-6"><div class="w-20 h-20 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center mb-4"><i class="fas fa-shopping-bag text-2xl text-brand-400"></i></div><p class="font-medium" style="color:var(--fg);">Your cart is empty</p><a href="#restaurants" onclick="S.cartOpen=false;saveState();render()" class="btn-primary mt-4 btn-sm">Browse Restaurants</a></div>';
+  } else {
+    h += '<div class="flex-1 overflow-y-auto p-4 space-y-3">';
+    S.cart.forEach(function(item){
+      h += '<div class="flex gap-3 p-3 rounded-xl" style="background:var(--surface);"><img src="'+item.image+'" class="w-16 h-16 rounded-lg object-cover flex-shrink-0"><div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate" style="color:var(--fg);">'+item.name+'</p><p class="text-xs mt-0.5" style="color:var(--muted);">'+(item.isVeg?'<i class="fas fa-leaf text-emerald-500"></i> Veg':'<i class="fas fa-drumstick-bite text-red-400"></i> Non-Veg')+'</p><div class="flex items-center justify-between mt-2"><span class="text-sm font-bold text-brand-500">'+fmtPrice(item.price*item.qty)+'</span><div class="flex items-center gap-2"><button class="qty-btn" onclick="updateQty(\''+item.id+'\',-1)"><i class="fas fa-minus text-[10px]"></i></button><span class="text-sm font-semibold w-5 text-center" style="color:var(--fg);">'+item.qty+'</span><button class="qty-btn" onclick="updateQty(\''+item.id+'\',1)"><i class="fas fa-plus text-[10px]"></i></button></div></div></div></div>';
+    });
+    h += '</div>';
+    h += '<div class="p-4 border-t" style="border-color:var(--border);">';
+    if(S.appliedCoupon){ h+='<div class="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 mb-3"><div class="flex items-center gap-2"><i class="fas fa-tag text-emerald-500 text-sm"></i><span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">'+S.appliedCoupon.code+'</span></div><button onclick="S.appliedCoupon=null;saveState();render()" class="text-xs text-red-500 hover:underline">Remove</button></div>'; }
+    else { h+='<div class="flex gap-2 mb-3"><input id="coupon-input" type="text" placeholder="Enter coupon code" class="input text-sm flex-1" style="padding:.5rem .75rem;"><button onclick="var r=applyCoupon(document.getElementById(\'coupon-input\').value);if(r)showToast(r,\'error\')" class="btn-secondary btn-sm">Apply</button></div>'; }
+    h += '<div class="space-y-2 text-sm mb-4"><div class="flex justify-between"><span style="color:var(--muted);">Subtotal</span><span style="color:var(--fg);">'+fmtPrice(t.subtotal)+'</span></div><div class="flex justify-between"><span style="color:var(--muted);">Delivery</span><span style="color:var(--fg);">'+fmtPrice(t.deliveryFee)+'</span></div>';
+    if(t.discount>0) h+='<div class="flex justify-between text-emerald-500"><span>Discount</span><span>-'+fmtPrice(t.discount)+'</span></div>';
+    h += '<div class="flex justify-between font-bold text-base pt-2 border-t" style="border-color:var(--border);"><span style="color:var(--fg);">Total</span><span class="text-brand-500">'+fmtPrice(t.total)+'</span></div></div>';
+    h += '<a href="#checkout" onclick="S.cartOpen=false;saveState();render()" class="btn-primary w-full justify-center py-3"><i class="fas fa-lock text-sm"></i> Proceed to Checkout</a></div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+/* ===================== FOOTER ===================== */
+function footer() {
+  return '<footer style="background:var(--card);border-top:1px solid var(--border);" class="mt-20"><div class="max-w-7xl mx-auto px-4 sm:px-6 py-12"><div class="grid grid-cols-1 md:grid-cols-4 gap-8"><div><div class="flex items-center gap-2 mb-4"><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center"><i class="fas fa-fire-flame-curved text-white text-sm"></i></div><span class="font-display font-bold text-xl" style="color:var(--fg);">Food<span class="text-brand-500">Fleet</span></span></div><p class="text-sm leading-relaxed" style="color:var(--muted);">Delivering happiness to your doorstep. Premium food from the best restaurants.</p><div class="flex gap-3 mt-4"><a href="#" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);"><i class="fab fa-facebook-f"></i></a><a href="#" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);"><i class="fab fa-twitter"></i></a><a href="#" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-900/20" style="color:var(--muted);"><i class="fab fa-instagram"></i></a></div></div><div><h4 class="font-display font-bold mb-4" style="color:var(--fg);">Quick Links</h4><ul class="space-y-2 text-sm" style="color:var(--muted);"><li><a href="#restaurants" class="hover:text-brand-500 transition-colors">Restaurants</a></li><li><a href="#" class="hover:text-brand-500 transition-colors">About Us</a></li><li><a href="#" class="hover:text-brand-500 transition-colors">Careers</a></li><li><a href="#" class="hover:text-brand-500 transition-colors">Blog</a></li></ul></div><div><h4 class="font-display font-bold mb-4" style="color:var(--fg);">Support</h4><ul class="space-y-2 text-sm" style="color:var(--muted);"><li><a href="#" class="hover:text-brand-500">Help Center</a></li><li><a href="#" class="hover:text-brand-500">Safety</a></li><li><a href="#" class="hover:text-brand-500">Terms of Service</a></li><li><a href="#" class="hover:text-brand-500">Privacy Policy</a></li></ul></div><div><h4 class="font-display font-bold mb-4" style="color:var(--fg);">Contact</h4><ul class="space-y-3 text-sm" style="color:var(--muted);"><li class="flex items-center gap-2"><i class="fas fa-map-marker-alt text-brand-400 w-4"></i>123 Food Street, Metro City</li><li class="flex items-center gap-2"><i class="fas fa-phone text-brand-400 w-4"></i>+1-555-FOOD</li><li class="flex items-center gap-2"><i class="fas fa-envelope text-brand-400 w-4"></i>hello@foodfleet.com</li></ul></div></div><div class="border-t mt-8 pt-6 text-center" style="border-color:var(--border);"><p class="text-sm" style="color:var(--muted);">&copy; 2024 FoodFleet. All rights reserved.</p></div></div></footer>';
+}
+
+/* ===================== CARDS ===================== */
+function restCard(r, i) {
+  var f = isFav('restaurants',r.id);
+  return '<a href="#restaurant/'+r.id+'" class="block rounded-2xl overflow-hidden card-hover" style="background:var(--card);border:1px solid var(--border);animation:fadeUp .5s ease '+(i*0.1)+'s both;"><div class="relative h-44 overflow-hidden"><img src="'+r.image+'" alt="'+r.name+'" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>'+(r.discount>0?'<span class="absolute top-3 left-3 px-2.5 py-1 bg-emerald-500 text-white text-xs font-bold rounded-lg">'+r.discount+'% OFF</span>':'')+(!r.isOpen?'<div class="absolute inset-0 bg-black/50 flex items-center justify-center"><span class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg text-sm">Closed</span></div>':'')+(S.user?'<button onclick="event.preventDefault();toggleFav(\'restaurants\',\''+r.id+'\')" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 dark:bg-black/50 flex items-center justify-center hover:scale-110 transition-transform"><i class="fas fa-heart text-sm '+(f?'text-red-500':'text-gray-400')+'"></i></button>':'')+'<div class="absolute bottom-3 left-3 right-3"><p class="text-white font-bold text-lg">'+r.name+'</p><p class="text-white/70 text-xs">'+r.cuisine+'</p></div></div><div class="p-4"><div class="flex items-center justify-between text-sm"><div class="flex items-center gap-1.5"><span class="flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold"><i class="fas fa-star text-[10px]"></i> '+r.rating+'</span><span style="color:var(--muted);" class="text-xs">('+r.reviewCount+')</span></div><div class="flex items-center gap-3 text-xs" style="color:var(--muted);"><span><i class="fas fa-clock mr-1"></i>'+r.deliveryTime+' min</span><span><i class="fas fa-indian-rupee-sign mr-1"></i>'+r.minOrder+'</span></div></div></div></a>';
+}
+
+function foodCard(f, i) {
+  var fv = isFav('foods',f.id);
+  var canAdd = S.user && S.user.role==='customer' && f.isAvailable;
+  return '<div class="rounded-2xl overflow-hidden card-hover" style="background:var(--card);border:1px solid var(--border);animation:fadeUp .5s ease '+(i*0.05)+'s both;"><div class="relative h-36 overflow-hidden"><img src="'+f.image+'" alt="'+f.name+'" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">'+(f.originalPrice>0?'<span class="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-md">'+Math.round((1-f.price/f.originalPrice)*100)+'% OFF</span>':'')+(f.isVeg?'<span class="absolute top-2 right-2 w-5 h-5 rounded-sm border-2 border-emerald-500 flex items-center justify-center bg-white dark:bg-gray-800"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span></span>':'<span class="absolute top-2 right-2 w-5 h-5 rounded-sm border-2 border-red-500 flex items-center justify-center bg-white dark:bg-gray-800"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span></span>')+(S.user&&S.user.role==='customer'?'<button onclick="toggleFav(\'foods\',\''+f.id+'\')" class="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white/90 dark:bg-black/50 flex items-center justify-center hover:scale-110 transition-transform"><i class="fas fa-heart text-xs '+(fv?'text-red-500':'text-gray-400')+'"></i></button>':'')+'</div><div class="p-3"><p class="text-sm font-semibold truncate" style="color:var(--fg);">'+f.name+'</p><p class="text-xs mt-0.5 truncate" style="color:var(--muted);">'+(findRest(f.restaurantId)?.name||'')+'</p><div class="flex items-center justify-between mt-2"><div class="flex items-center gap-2"><span class="text-sm font-bold text-brand-500">'+fmtPrice(f.price)+'</span>'+(f.originalPrice>0?'<span class="text-xs line-through" style="color:var(--muted);">'+fmtPrice(f.originalPrice)+'</span>':'')+'</div>'+(canAdd?'<button onclick="addToCart(\''+f.id+'\')" class="w-8 h-8 rounded-lg bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 transition-colors shadow-sm shadow-brand-500/20"><i class="fas fa-plus text-xs"></i></button>':'')+'</div></div></div>';
+}
+
+function menuItem(f, i) {
+  return '<div class="flex gap-4 p-4 rounded-2xl card-hover" style="background:var(--card);border:1px solid var(--border);animation:fadeUp .4s ease '+(i*0.05)+'s both;" data-veg="'+(f.isVeg?'veg':'nonveg')+'"><div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-1">'+(f.isVeg?'<span class="w-4 h-4 rounded-sm border-2 border-emerald-500 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-emerald-500"></span></span>':'<span class="w-4 h-4 rounded-sm border-2 border-red-500 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-red-500"></span></span>')+(f.isPopular?'<span class="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded">POPULAR</span>':'')+'</div><h4 class="font-semibold" style="color:var(--fg);">'+f.name+'</h4><p class="text-xs mt-1 line-clamp-2" style="color:var(--muted);">'+f.description+'</p><div class="flex items-center gap-2 mt-2"><span class="text-sm font-bold text-brand-500">'+fmtPrice(f.price)+'</span>'+(f.originalPrice>0?'<span class="text-xs line-through" style="color:var(--muted);">'+fmtPrice(f.originalPrice)+'</span>':'')+'</div><div class="flex items-center gap-2 mt-1 text-xs" style="color:var(--muted);"><span><i class="fas fa-star text-amber-400 text-[10px]"></i> '+f.rating+'</span><span>·</span><span><i class="fas fa-clock mr-0.5"></i>'+f.preparationTime+' min</span></div></div><div class="relative flex-shrink-0"><img src="'+f.image+'" class="w-28 h-28 rounded-xl object-cover">'+(S.user&&S.user.role==='customer'&&f.isAvailable?'<button onclick="addToCart(\''+f.id+'\')" class="absolute -bottom-2 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-brand-500 text-white text-xs font-bold rounded-lg hover:bg-brand-600 shadow-lg shadow-brand-500/30 whitespace-nowrap">ADD</button>':(!f.isAvailable?'<div class="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center"><span class="text-white text-xs font-bold">Unavailable</span></div>':''))+'</div></div>';
+}
+
+/* ===================== PAGES ===================== */
+
+// HOME
+routes['home'] = function() {
+  var feat = RESTAURANTS.filter(function(r){return r.featured&&r.approved});
+  var pop = FOODS.filter(function(f){return f.isPopular}).slice(0,8);
+  var h = navbar();
+  h += '<main>';
+  // Hero
+  h += '<section class="hero-bg relative overflow-hidden"><div class="absolute inset-0 bg-black/20"></div><div class="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-32"><div class="max-w-2xl"><div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-white/90 text-sm mb-6 anim-fade-up"><i class="fas fa-bolt text-amber-300"></i><span>Free delivery on orders above Rs.499</span></div>';
+  h += '<h1 class="font-display text-4xl sm:text-5xl md:text-7xl font-black text-white leading-tight anim-fade-up anim-d1">Crave It.<br><span class="text-amber-300">Order It.</span><br>Love It.</h1>';
+  h += '<p class="text-white/80 text-lg mt-6 max-w-lg leading-relaxed anim-fade-up anim-d2">Discover the finest restaurants near you. From street food to fine dining, we deliver happiness to your doorstep.</p>';
+  h += '<div class="flex flex-wrap gap-3 mt-8 anim-fade-up anim-d3"><a href="#restaurants" class="px-6 py-3.5 bg-white text-brand-700 font-bold rounded-xl hover:bg-amber-50 transition-colors shadow-lg shadow-black/20 flex items-center gap-2"><i class="fas fa-utensils"></i> Explore Restaurants</a><a href="#register" class="px-6 py-3.5 glass text-white font-semibold rounded-xl hover:bg-white/20 transition-colors flex items-center gap-2"><i class="fas fa-user-plus"></i> Join Free</a></div>';
+  h += '<div class="flex flex-wrap gap-6 mt-12 anim-fade-up anim-d4"><div class="text-center"><p class="text-2xl font-bold text-white">500+</p><p class="text-white/60 text-sm">Restaurants</p></div><div class="w-px bg-white/20"></div><div class="text-center"><p class="text-2xl font-bold text-white">50K+</p><p class="text-white/60 text-sm">Happy Customers</p></div><div class="w-px bg-white/20"></div><div class="text-center"><p class="text-2xl font-bold text-white">4.8</p><p class="text-white/60 text-sm">Average Rating</p></div></div></div></div></section>';
+  // Cuisines
+  h += '<section class="max-w-7xl mx-auto px-4 sm:px-6 py-16"><div class="text-center mb-10"><h2 class="font-display text-3xl md:text-4xl font-bold" style="color:var(--fg);">Explore by Cuisine</h2></div><div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">';
+  var cIcons = {Chinese:'🥡',Italian:'🍕',Indian:'🍛',Mexican:'🌮',Japanese:'🍣',American:'🍔',Thai:'🍜',Mediterranean:'🥗'};
+  CUISINES.forEach(function(c,i){ h+='<a href="#restaurants?cuisine='+c+'" class="flex flex-col items-center gap-2 p-4 rounded-2xl card-hover" style="background:var(--card);border:1px solid var(--border);animation:fadeUp .5s ease '+(i*0.05)+'s both;"><div class="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-xl">'+cIcons[c]+'</div><span class="text-xs font-medium text-center" style="color:var(--fg);">'+c+'</span></a>'; });
+  h += '</div></section>';
+  // Featured
+  h += '<section class="max-w-7xl mx-auto px-4 sm:px-6 py-8"><div class="flex items-center justify-between mb-8"><div><h2 class="font-display text-3xl font-bold" style="color:var(--fg);">Featured Restaurants</h2><p class="mt-1" style="color:var(--muted);">Handpicked by our team</p></div><a href="#restaurants" class="btn-secondary btn-sm hidden sm:flex">View All <i class="fas fa-arrow-right text-xs"></i></a></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">';
+  feat.forEach(function(r,i){ h+=restCard(r,i); });
+  h += '</div></section>';
+  // Popular
+  h += '<section class="max-w-7xl mx-auto px-4 sm:px-6 py-16"><div class="flex items-center justify-between mb-8"><div><h2 class="font-display text-3xl font-bold" style="color:var(--fg);">Trending Now</h2><p class="mt-1" style="color:var(--muted);">Most ordered dishes this week</p></div></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">';
+  pop.forEach(function(f,i){ h+=foodCard(f,i); });
+  h += '</div></section>';
+  // How it works
+  h += '<section class="py-16" style="background:var(--surface);"><div class="max-w-7xl mx-auto px-4 sm:px-6"><div class="text-center mb-12"><h2 class="font-display text-3xl md:text-4xl font-bold" style="color:var(--fg);">How It Works</h2></div><div class="grid grid-cols-1 md:grid-cols-3 gap-8">';
+  [{icon:'fa-search',title:'Browse & Discover',desc:'Explore hundreds of restaurants and thousands of dishes.'},{icon:'fa-cart-shopping',title:'Build Your Order',desc:'Add favorites to cart, apply coupons, choose payment.'},{icon:'fa-truck-fast',title:'Fast Delivery',desc:'Track your order in real time and enjoy hot food.'}].forEach(function(s,i){
+    h+='<div class="text-center p-8 rounded-2xl card-hover" style="background:var(--card);border:1px solid var(--border);animation:fadeUp .5s ease '+(i*0.15)+'s both;"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-500/20"><i class="fas '+s.icon+' text-white text-xl"></i></div><div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-900/40 text-brand-600 text-xs font-bold mb-3">'+(i+1)+'</div><h3 class="font-display text-xl font-bold mb-2" style="color:var(--fg);">'+s.title+'</h3><p class="text-sm leading-relaxed" style="color:var(--muted);">'+s.desc+'</p></div>';
+  });
+  h += '</div></div></section>';
+  // Coupons
+  h += '<section class="max-w-7xl mx-auto px-4 sm:px-6 py-16"><div class="rounded-3xl overflow-hidden relative" style="background:linear-gradient(135deg,#7C2D12,#EA580C,#F97316);"><div class="relative p-8 md:p-12 flex flex-col md:flex-row items-center gap-8"><div class="flex-1"><span class="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold mb-4">Limited Time Offer</span><h2 class="font-display text-3xl md:text-4xl font-bold text-white mb-3">Use Code WELCOME20</h2><p class="text-white/80 mb-6">Get 20% off on your first order. Maximum discount Rs.150.</p><a href="#restaurants" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-700 font-bold rounded-xl hover:bg-amber-50 shadow-lg">Order Now <i class="fas fa-arrow-right"></i></a></div><div class="flex gap-4">';
+  COUPONS.filter(function(c){return c.isActive}).forEach(function(c){ h+='<div class="w-32 p-4 rounded-2xl bg-white/10 backdrop-blur border border-white/20 text-center"><p class="text-white font-bold text-lg">'+c.code+'</p><p class="text-white/70 text-xs mt-1">'+c.description+'</p></div>'; });
+  h += '</div></div></div></section>';
+  // Testimonials
+  h += '<section class="py-16" style="background:var(--surface);"><div class="max-w-7xl mx-auto px-4 sm:px-6"><div class="text-center mb-12"><h2 class="font-display text-3xl md:text-4xl font-bold" style="color:var(--fg);">What Customers Say</h2></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6">';
+  [{name:'Priya Sharma',text:'Delivery speed is incredible! My biryani arrived piping hot in 20 minutes.',rating:5,avatar:'priyas'},{name:'Mike Torres',text:'The variety of restaurants is amazing. The UI is so clean and modern.',rating:5,avatar:'miket'},{name:'Emily Chen',text:'Coupon system saves me money on every order. Highly recommend!',rating:4,avatar:'emilyc'}].forEach(function(t,i){
+    h+='<div class="p-6 rounded-2xl card-hover" style="background:var(--card);border:1px solid var(--border);animation:fadeUp .5s ease '+(i*0.1)+'s both;"><div class="flex gap-1 mb-3">'+stars(t.rating)+'</div><p class="text-sm leading-relaxed mb-4" style="color:var(--fg);">"'+t.text+'"</p><div class="flex items-center gap-3"><img src="https://picsum.photos/seed/'+t.avatar+'/80/80.jpg" class="w-10 h-10 rounded-full object-cover"><div><p class="text-sm font-semibold" style="color:var(--fg);">'+t.name+'</p><p class="text-xs" style="color:var(--muted);">Verified Customer</p></div></div></div>';
+  });
+  h += '</div></div></section></main>';
+  h += footer();
+  h += cartSidebar();
+  return h;
+};
+
+// RESTAURANTS LISTING
+var curCuisine = '';
+routes['restaurants'] = function(qs) {
+  var params = new URLSearchParams(qs||'');
+  curCuisine = params.get('cuisine')||'';
+  var h = navbar();
+  h += '<main class="max-w-7xl mx-auto px-4 sm:px-6 py-8"><div class="mb-8"><h1 class="font-display text-3xl md:text-4xl font-bold mb-6" style="color:var(--fg);">All Restaurants</h1><div class="flex flex-col sm:flex-row gap-3"><div class="relative flex-1"><i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2" style="color:var(--muted);"></i><input id="rest-search" type="text" placeholder="Search restaurants or cuisines..." class="input pl-11" oninput="filterRest()"></div><select id="rest-sort" class="input sm:w-48" onchange="filterRest()"><option value="rating">Top Rated</option><option value="delivery">Fastest Delivery</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option></select></div></div>';
+  h += '<div class="flex flex-wrap gap-2 mb-6"><button class="cat-pill '+(!curCuisine?'active':'')+'" onclick="curCuisine=\'\';document.querySelectorAll(\'.cat-pill\')[0].classList.add(\'active\');filterRest()">All</button>';
+  CUISINES.forEach(function(c){ h+='<button class="cat-pill '+(curCuisine===c?'active':'')+'" onclick="curCuisine=\''+c+'\';document.querySelectorAll(\'.cat-pill\').forEach(function(e){e.classList.remove(\'active\')});this.classList.add(\'active\');filterRest()">'+c+'</button>'; });
+  h += '</div><div id="rest-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div><div id="no-res" class="hidden text-center py-16"><div class="w-20 h-20 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center mx-auto mb-4"><i class="fas fa-search text-2xl text-brand-400"></i></div><p class="font-semibold text-lg" style="color:var(--fg);">No restaurants found</p></div></main>';
+  h += footer() + cartSidebar();
+  setTimeout(filterRest, 30);
+  return h;
+};
+function filterRest() {
+  var search = (document.getElementById('rest-search')?.value||'').toLowerCase();
+  var sort = document.getElementById('rest-sort')?.value||'rating';
+  var list = RESTAURANTS.filter(function(r){return r.approved});
+  if(curCuisine) list = list.filter(function(r){return r.cuisine===curCuisine});
+  if(search) list = list.filter(function(r){return r.name.toLowerCase().indexOf(search)>-1||r.cuisine.toLowerCase().indexOf(search)>-1});
+  if(sort==='rating') list.sort(function(a,b){return b.rating-a.rating});
+  else if(sort==='delivery') list.sort(function(a,b){return parseInt(a.deliveryTime)-parseInt(b.deliveryTime)});
+  else if(sort==='price-low') list.sort(function(a,b){return a.minOrder-b.minOrder});
+  else if(sort==='price-high') list.sort(function(a,b){return b.minOrder-a.minOrder});
+  var grid = document.getElementById('rest-grid');
+  var nr = document.getElementById('no-res');
+  if(!grid) return;
+  if(list.length===0){grid.innerHTML='';nr.classList.remove('hidden');}
+  else{nr.classList.add('hidden');grid.innerHTML=list.map(function(r,i){return restCard(r,i)}).join('');}
+}
+
+// RESTAURANT DETAIL
+var curMenuCat = '';
+var curVegF = 'all';
+routes['restaurant'] = function(id) {
+  var r = findRest(id);
+  if(!r) return navbar()+'<div class="max-w-7xl mx-auto px-4 py-20 text-center"><h2 class="font-display text-2xl font-bold">Restaurant not found</h2><a href="#restaurants" class="btn-primary mt-4 inline-flex">Back</a></div>';
+  curMenuCat = r.categories[0]||'';
+  curVegF = 'all';
+  var foods = FOODS.filter(function(f){return f.restaurantId===id});
+  var fv = isFav('restaurants',r.id);
+  var h = navbar();
+  h += '<main><div class="relative h-56 md:h-72 overflow-hidden"><img src="'+r.image+'" class="w-full h-full object-cover"><div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div><div class="absolute bottom-0 left-0 right-0 p-6 md:p-8"><div class="max-w-7xl mx-auto"><div class="flex flex-wrap items-end gap-4"><div class="flex-1"><div class="flex items-center gap-2 mb-2">'+(r.discount>0?'<span class="px-2 py-0.5 bg-emerald-500 text-white text-xs font-bold rounded">'+r.discount+'% OFF</span>':'')+'<span class="px-2 py-0.5 '+(r.isOpen?'bg-emerald-500':'bg-red-500')+' text-white text-xs font-bold rounded">'+(r.isOpen?'Open Now':'Closed')+'</span></div><h1 class="font-display text-3xl md:text-4xl font-bold text-white">'+r.name+'</h1><p class="text-white/70 mt-1">'+r.cuisine+' · '+r.address+'</p></div>'+(S.user&&S.user.role==='customer'?'<button onclick="toggleFav(\'restaurants\',\''+r.id+'\')" class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center hover:bg-white/30"><i class="fas fa-heart text-lg '+(fv?'text-red-500':'text-white')+'"></i></button>':'')+'</div><div class="flex flex-wrap items-center gap-4 mt-4 text-sm text-white/80"><span class="flex items-center gap-1"><i class="fas fa-star text-amber-400"></i> <strong class="text-white">'+r.rating+'</strong> ('+r.reviewCount+')</span><span><i class="fas fa-clock mr-1"></i>'+r.deliveryTime+' min</span><span><i class="fas fa-indian-rupee-sign mr-1"></i>Min. '+r.minOrder+'</span></div></div></div></div>';
+  h += '<div class="max-w-7xl mx-auto px-4 sm:px-6 py-8"><div class="flex flex-col md:flex-row gap-8"><div class="md:w-48 flex-shrink-0"><div class="md:sticky md:top-20"><h3 class="font-display font-bold text-lg mb-3" style="color:var(--fg);">Menu</h3><div class="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0">';
+  r.categories.forEach(function(c,i){ h+='<button class="tab '+(i===0?'active':'')+' text-sm" onclick="curMenuCat=\''+c+'\';document.getElementById(\'cat-title\').textContent=\''+c+'\';this.parentElement.querySelectorAll(\'.tab\').forEach(function(t){t.classList.remove(\'active\')});this.classList.add(\'active\');applyMenuFilter()">'+c+'</button>'; });
+  h += '</div></div></div><div class="flex-1"><div class="flex items-center justify-between mb-6"><h3 class="font-display font-bold text-xl" style="color:var(--fg);" id="cat-title">'+curMenuCat+'</h3><div class="flex items-center gap-2"><button class="tab text-xs active" onclick="curVegF=\'all\';this.parentElement.querySelectorAll(\'.tab\').forEach(function(t){t.classList.remove(\'active\')});this.classList.add(\'active\');applyMenuFilter()">All</button><button class="tab text-xs" onclick="curVegF=\'veg\';this.parentElement.querySelectorAll(\'.tab\').forEach(function(t){t.classList.remove(\'active\')});this.classList.add(\'active\');applyMenuFilter()">Veg</button><button class="tab text-xs" onclick="curVegF=\'nonveg\';this.parentElement.querySelectorAll(\'.tab\').forEach(function(t){t.classList.remove(\'active\')});this.classList.add(\'active\');applyMenuFilter()">Non-Veg</button></div></div><div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">';
+  foods.filter(function(f){return f.category===curMenuCat}).forEach(function(f,i){ h+=menuItem(f,i); });
+  h += '</div></div></div></div></main>';
+  h += footer() + cartSidebar();
+  return h;
+};
+function applyMenuFilter() {
+  var rid = window.location.hash.split('/')[1];
+  var list = FOODS.filter(function(f){return f.restaurantId===rid && f.category===curMenuCat});
+  if(curVegF==='veg') list=list.filter(function(f){return f.isVeg});
+  else if(curVegF==='nonveg') list=list.filter(function(f){return !f.isVeg});
+  var grid = document.getElementById('menu-grid');
+  if(grid) grid.innerHTML = list.length ? list.map(function(f,i){return menuItem(f,i)}).join('') : '<p class="col-span-2 text-center py-8" style="color:var(--muted);">No items found</p>';
+}
+
+// CHECKOUT
+routes['checkout'] = function() {
+  if(!S.user||S.user.role!=='customer'){nav('login');return '';}
+  if(S.cart.length===0){nav('restaurants');return '';}
+  var t = cartTotal(); var u = S.user;
+  var h = navbar();
+  h += '<main class="max-w-4xl mx-auto px-4 sm:px-6 py-8"><h1 class="font-display text-3xl font-bold mb-8" style="color:var(--fg);">Checkout</h1><div class="grid grid-cols-1 lg:grid-cols-5 gap-8"><div class="lg:col-span-3 space-y-6">';
+  h += '<div class="p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);"><i class="fas fa-map-marker-alt text-brand-500 mr-2"></i>Delivery Address</h3><div class="space-y-3"><input id="chk-name" type="text" class="input" placeholder="Full Name" value="'+u.name+'"><input id="chk-phone" type="tel" class="input" placeholder="Phone" value="'+u.phone+'"><textarea id="chk-addr" class="input" rows="3" placeholder="Address">'+u.address+'</textarea><input id="chk-pin" type="text" class="input" placeholder="Pincode" value="100001"></div></div>';
+  h += '<div class="p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);"><i class="fas fa-credit-card text-brand-500 mr-2"></i>Payment</h3><div class="space-y-3"><label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer border-2 border-brand-500" style="background:var(--surface);" id="pay-card"><input type="radio" name="payment" value="card" checked class="accent-orange-500" onchange="selPay(\'card\')"><i class="fas fa-credit-card text-brand-500"></i><span class="text-sm font-medium" style="color:var(--fg);">Credit / Debit Card</span></label><label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer border" style="background:var(--surface);border-color:var(--border);" id="pay-cod"><input type="radio" name="payment" value="cod" class="accent-orange-500" onchange="selPay(\'cod\')"><i class="fas fa-money-bill-wave text-emerald-500"></i><span class="text-sm font-medium" style="color:var(--fg);">Cash on Delivery</span></label><label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer border" style="background:var(--surface);border-color:var(--border);" id="pay-upi"><input type="radio" name="payment" value="upi" class="accent-orange-500" onchange="selPay(\'upi\')"><i class="fas fa-mobile-screen text-blue-500"></i><span class="text-sm font-medium" style="color:var(--fg);">UPI Payment</span></label></div></div>';
+  h += '</div><div class="lg:col-span-2"><div class="sticky top-20 p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);">Order Summary</h3><div class="space-y-3 mb-4 max-h-48 overflow-y-auto">';
+  S.cart.forEach(function(item){ h+='<div class="flex items-center gap-3"><img src="'+item.image+'" class="w-10 h-10 rounded-lg object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-medium truncate" style="color:var(--fg);">'+item.name+'</p><p class="text-xs" style="color:var(--muted);">x'+item.qty+'</p></div><span class="text-sm font-semibold" style="color:var(--fg);">'+fmtPrice(item.price*item.qty)+'</span></div>'; });
+  h += '</div><div class="space-y-2 text-sm border-t pt-4" style="border-color:var(--border);"><div class="flex justify-between"><span style="color:var(--muted);">Subtotal</span><span style="color:var(--fg);">'+fmtPrice(t.subtotal)+'</span></div><div class="flex justify-between"><span style="color:var(--muted);">Delivery</span><span style="color:var(--fg);">'+fmtPrice(t.deliveryFee)+'</span></div>';
+  if(t.discount>0) h+='<div class="flex justify-between text-emerald-500"><span>Discount</span><span>-'+fmtPrice(t.discount)+'</span></div>';
+  h += '<div class="flex justify-between font-bold text-lg pt-2 border-t" style="border-color:var(--border);"><span style="color:var(--fg);">Total</span><span class="text-brand-500">'+fmtPrice(t.total)+'</span></div></div>';
+  h += '<button onclick="placeOrder()" class="btn-primary w-full justify-center py-3 mt-4 text-base"><i class="fas fa-check-circle"></i> Place Order — '+fmtPrice(t.total)+'</button></div></div></div></main>';
+  h += cartSidebar();
+  return h;
+};
+function selPay(m) { ['card','cod','upi'].forEach(function(x){var e=document.getElementById('pay-'+x);if(e)e.style.borderColor=x===m?'var(--accent)':'var(--border)';}); }
+function placeOrder() {
+  var addr = document.getElementById('chk-addr')?.value || S.user.address;
+  var pay = document.querySelector('input[name="payment"]:checked')?.value || 'cod';
+  var restIds = []; S.cart.forEach(function(c){if(restIds.indexOf(c.restaurantId)===-1)restIds.push(c.restaurantId);});
+  var t = cartTotal();
+  restIds.forEach(function(rid,idx){
+    var items = S.cart.filter(function(c){return c.restaurantId===rid}).map(function(c){return {foodId:c.id,name:c.name,price:c.price,qty:c.qty}});
+    var sub = items.reduce(function(s,i){return s+i.price*i.qty},0);
+    S.orders.push({id:'ORD-'+Date.now()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),userId:S.user.id,restaurantId:rid,items:items,subtotal:sub,deliveryFee:idx===0?t.deliveryFee:0,discount:idx===0?t.discount:0,total:Math.max(0,sub+(idx===0?t.deliveryFee:0)-(idx===0?t.discount:0)),status:'placed',paymentMethod:pay,address:addr,placedAt:new Date().toISOString()});
+  });
+  clearCart(); nav('orders'); showToast('Order placed successfully!','success');
+}
+
+// ORDERS
+routes['orders'] = function() {
+  if(!S.user){nav('login');return '';}
+  var orders = S.orders.filter(function(o){return o.userId===S.user.id}).reverse();
+  var h = navbar();
+  h += '<main class="max-w-4xl mx-auto px-4 sm:px-6 py-8"><h1 class="font-display text-3xl font-bold mb-8" style="color:var(--fg);">My Orders</h1>';
+  if(orders.length===0){ h+='<div class="text-center py-16"><div class="w-20 h-20 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center mx-auto mb-4"><i class="fas fa-receipt text-2xl text-brand-400"></i></div><p class="font-semibold text-lg" style="color:var(--fg);">No orders yet</p><a href="#restaurants" class="btn-primary mt-4 inline-flex">Browse Restaurants</a></div>'; }
+  else {
+    h += '<div class="space-y-4">';
+    var steps = ['Placed','Accepted','Preparing','On the Way','Delivered'];
+    orders.forEach(function(o,i){
+      var r = findRest(o.restaurantId);
+      var si = stepIdx(o.status);
+      h += '<div class="rounded-2xl overflow-hidden anim-fade-up" style="background:var(--card);border:1px solid var(--border);animation-delay:'+i*0.05+'s;"><div class="p-5 border-b flex flex-wrap items-center justify-between gap-3" style="border-color:var(--border);"><div class="flex items-center gap-3"><img src="'+(r?r.image:'')+'" class="w-12 h-12 rounded-xl object-cover"><div><p class="font-semibold" style="color:var(--fg);">'+(r?r.name:'Unknown')+'</p><p class="text-xs" style="color:var(--muted);">#'+o.id+' · '+timeAgo(o.placedAt)+'</p></div></div><div class="flex items-center gap-3"><span class="badge '+statusColor(o.status)+'">'+statusLabel(o.status)+'</span><span class="text-sm font-bold text-brand-500">'+fmtPrice(o.total)+'</span></div></div>';
+      if(o.status!=='delivered'&&o.status!=='cancelled'){
+        h+='<div class="px-5 py-4" style="background:var(--surface);"><div class="flex items-center">';
+        steps.forEach(function(s,ji){
+          h+='<div class="flex items-center '+(ji<steps.length-1?'flex-1':'')+'"><div class="flex flex-col items-center"><div class="step-dot '+(ji<si?'done':ji===si?'active':'pending')+'">'+(ji<si?'<i class="fas fa-check text-xs"></i>':(ji+1))+'</div><span class="text-[10px] font-medium mt-1 hidden sm:block" style="color:'+(ji<=si?'var(--fg)':'var(--muted)')+';">'+s+'</span></div>'+(ji<steps.length-1?'<div class="step-line '+(ji<si?'done':'')+' mx-1" style="margin-top:-14px;"></div>':'');
+        });
+        h+='</div></div>';
+      }
+      h += '<div class="p-5"><div class="flex flex-wrap gap-2 mb-3">';
+      o.items.forEach(function(it){h+='<span class="text-xs px-2.5 py-1 rounded-lg" style="background:var(--surface);color:var(--fg);">'+it.name+' x'+it.qty+'</span>';});
+      h += '</div><div class="flex items-center justify-between"><div class="text-xs" style="color:var(--muted);"><i class="fas fa-'+(o.paymentMethod==='cod'?'money-bill':'credit-card')+' mr-1"></i>'+(o.paymentMethod==='cod'?'Cash on Delivery':o.paymentMethod.toUpperCase())+'</div><div class="flex gap-2">';
+      if(o.status==='delivered'&&!o.rating) h+='<button onclick="showReviewModal(\''+o.id+'\')" class="btn-secondary btn-sm"><i class="fas fa-star text-amber-400 mr-1"></i>Rate</button>';
+      if(o.status==='placed') h+='<button onclick="cancelOrd(\''+o.id+'\')" class="btn-danger btn-sm">Cancel</button>';
+      h += '<a href="#order/'+o.id+'" class="btn-secondary btn-sm">Details</a></div></div></div></div>';
+    });
+    h += '</div>';
+  }
+  h += '</main>'+footer()+cartSidebar();
+  return h;
+};
+function cancelOrd(id){var o=S.orders.find(function(x){return x.id===id});if(o){o.status='cancelled';saveState();render();showToast('Order cancelled','warning');}}
+
+// ORDER DETAIL
+routes['order'] = function(id) {
+  var o = S.orders.find(function(x){return x.id===id});
+  if(!o) return navbar()+'<div class="max-w-4xl mx-auto px-4 py-20 text-center"><h2 class="font-display text-2xl font-bold">Order not found</h2></div>';
+  var r = findRest(o.restaurantId);
+  var si = stepIdx(o.status);
+  var steps = ['Placed','Accepted','Preparing','On the Way','Delivered'];
+  var h = navbar();
+  h += '<main class="max-w-3xl mx-auto px-4 sm:px-6 py-8"><a href="#orders" class="inline-flex items-center gap-2 text-sm mb-6 hover:text-brand-500" style="color:var(--muted);"><i class="fas fa-arrow-left"></i> Back to Orders</a>';
+  if(o.status!=='cancelled'){
+    h += '<div class="p-6 rounded-2xl mb-6" style="background:var(--card);border:1px solid var(--border);"><div class="flex items-center justify-between mb-6"><div><h2 class="font-display text-2xl font-bold" style="color:var(--fg);">Order #'+o.id+'</h2><p class="text-sm mt-1" style="color:var(--muted);">Placed on '+new Date(o.placedAt).toLocaleString()+'</p></div><span class="badge '+statusColor(o.status)+' text-sm px-3 py-1">'+statusLabel(o.status)+'</span></div><div class="flex items-center">';
+    steps.forEach(function(s,i){h+='<div class="flex items-center '+(i<steps.length-1?'flex-1':'')+'"><div class="flex flex-col items-center"><div class="step-dot '+(i<si?'done':i===si?'active':'pending')+'" style="width:40px;height:40px;font-size:.9rem;">'+(i<si?'<i class="fas fa-check"></i>':(i+1))+'</div><span class="text-xs font-medium mt-1 text-center" style="color:'+(i<=si?'var(--fg)':'var(--muted)')+';">'+s+'</span></div>'+(i<steps.length-1?'<div class="step-line '+(i<si?'done':'')+' mx-2" style="margin-top:-16px;"></div>':'');});
+    h += '</div></div></div>';
+  } else {
+    h += '<div class="p-6 rounded-2xl mb-6 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800"><div class="flex items-center gap-3"><i class="fas fa-times-circle text-2xl text-red-500"></i><div><h2 class="font-display text-xl font-bold text-red-600">Order Cancelled</h2></div></div></div>';
+  }
+  h += '<div class="p-6 rounded-2xl mb-6" style="background:var(--card);border:1px solid var(--border);"><div class="flex items-center gap-3 mb-4 pb-4 border-b" style="border-color:var(--border);"><img src="'+(r?r.image:'')+'" class="w-14 h-14 rounded-xl object-cover"><div><p class="font-semibold" style="color:var(--fg);">'+(r?r.name:'Restaurant')+'</p><p class="text-xs" style="color:var(--muted);">'+(r?r.cuisine+' · '+r.address:'')+'</p></div></div><h3 class="font-semibold mb-3" style="color:var(--fg);">Items</h3><div class="space-y-3">';
+  o.items.forEach(function(it){h+='<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-7 h-7 rounded-md bg-orange-50 dark:bg-orange-900/20 text-brand-600 text-xs font-bold flex items-center justify-center">'+it.qty+'x</span><span class="text-sm" style="color:var(--fg);">'+it.name+'</span></div><span class="text-sm font-medium" style="color:var(--fg);">'+fmtPrice(it.price*it.qty)+'</span></div>';});
+  h += '</div><div class="border-t mt-4 pt-4 space-y-2 text-sm" style="border-color:var(--border);"><div class="flex justify-between"><span style="color:var(--muted);">Subtotal</span><span style="color:var(--fg);">'+fmtPrice(o.subtotal)+'</span></div><div class="flex justify-between"><span style="color:var(--muted);">Delivery</span><span style="color:var(--fg);">'+fmtPrice(o.deliveryFee)+'</span></div>';
+  if(o.discount>0) h+='<div class="flex justify-between text-emerald-500"><span>Discount</span><span>-'+fmtPrice(o.discount)+'</span></div>';
+  h += '<div class="flex justify-between font-bold text-base pt-2 border-t" style="border-color:var(--border);"><span style="color:var(--fg);">Total</span><span class="text-brand-500">'+fmtPrice(o.total)+'</span></div></div></div>';
+  h += '<div class="p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-semibold mb-3" style="color:var(--fg);">Delivery Details</h3><div class="space-y-2 text-sm"><div class="flex gap-2"><span style="color:var(--muted);min-width:80px;">Address</span><span style="color:var(--fg);">'+o.address+'</span></div><div class="flex gap-2"><span style="color:var(--muted);min-width:80px;">Payment</span><span style="color:var(--fg);">'+(o.paymentMethod==='cod'?'Cash on Delivery':o.paymentMethod.toUpperCase())+'</span></div></div></div>';
+  if(o.review) h+='<div class="p-6 rounded-2xl mt-6" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-semibold mb-2" style="color:var(--fg);">Your Review</h3><div class="flex gap-1 mb-2">'+stars(o.rating)+'</div><p class="text-sm" style="color:var(--muted);">'+o.review+'</p></div>';
+  h += '</main>'+footer()+cartSidebar();
+  return h;
+};
+
+// REVIEW MODAL
+var reviewRating = 0;
+function showReviewModal(oid) {
+  reviewRating = 0;
+  var old = document.getElementById('review-modal'); if(old) old.remove();
+  var m = document.createElement('div'); m.id = 'review-modal';
+  m.innerHTML = '<div class="overlay" onclick="document.getElementById(\'review-modal\').remove()"></div><div class="fixed inset-0 z-[70] flex items-center justify-center p-4"><div class="modal-content p-6"><h3 class="font-display text-xl font-bold mb-4" style="color:var(--fg);">Rate Your Order</h3><div class="flex gap-2 mb-4" id="rev-stars">'+[1,2,3,4,5].map(function(i){return '<i class="fas fa-star text-2xl text-gray-300 cursor-pointer" data-val="'+i+'" onclick="setRevStar('+i+')"></i>';}).join('')+'</div><textarea id="rev-text" class="input mb-4" rows="3" placeholder="Share your experience..."></textarea><div class="flex gap-3"><button onclick="document.getElementById(\'review-modal\').remove()" class="btn-secondary flex-1 justify-center">Cancel</button><button onclick="submitReview(\''+oid+'\')" class="btn-primary flex-1 justify-center">Submit</button></div></div></div>';
+  document.body.appendChild(m);
+}
+function setRevStar(v) { reviewRating=v; document.querySelectorAll('#rev-stars .fa-star').forEach(function(s,i){s.style.color=i<v?'#FBBF24':'#D1D5DB';}); }
+function submitReview(oid) { if(!reviewRating){showToast('Please select a rating','warning');return;} var txt=document.getElementById('rev-text')?.value||''; var o=S.orders.find(function(x){return x.id===oid}); if(o){o.rating=reviewRating;o.review=txt;saveState();} document.getElementById('review-modal')?.remove(); render(); showToast('Review submitted!','success'); }
+
+// FAVORITES
+routes['favorites'] = function() {
+  if(!S.user){nav('login');return '';}
+  var fr = RESTAURANTS.filter(function(r){return isFav('restaurants',r.id)});
+  var ff = FOODS.filter(function(f){return isFav('foods',f.id)});
+  var h = navbar();
+  h += '<main class="max-w-7xl mx-auto px-4 sm:px-6 py-8"><h1 class="font-display text-3xl font-bold mb-8" style="color:var(--fg);">My Favorites</h1>';
+  if(fr.length>0){h+='<h2 class="font-display text-xl font-bold mb-4" style="color:var(--fg);">Restaurants</h2><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">'+fr.map(function(r,i){return restCard(r,i)}).join('')+'</div>';}
+  if(ff.length>0){h+='<h2 class="font-display text-xl font-bold mb-4" style="color:var(--fg);">Dishes</h2><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">'+ff.map(function(f,i){return foodCard(f,i)}).join('')+'</div>';}
+  if(fr.length===0&&ff.length===0){h+='<div class="text-center py-16"><div class="w-20 h-20 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center mx-auto mb-4"><i class="fas fa-heart text-2xl text-brand-400"></i></div><p class="font-semibold text-lg" style="color:var(--fg);">No favorites yet</p><a href="#restaurants" class="btn-primary mt-4 inline-flex">Explore Restaurants</a></div>';}
+  h += '</main>'+footer()+cartSidebar();
+  return h;
+};
+
+// PROFILE
+routes['profile'] = function() {
+  if(!S.user){nav('login');return '';}
+  var u = S.user;
+  var orders = S.orders.filter(function(o){return o.userId===u.id});
+  var spent = orders.filter(function(o){return o.status==='delivered'}).reduce(function(s,o){return s+o.total},0);
+  var h = navbar();
+  h += '<main class="max-w-3xl mx-auto px-4 sm:px-6 py-8"><h1 class="font-display text-3xl font-bold mb-8" style="color:var(--fg);">My Profile</h1>';
+  h += '<div class="p-6 rounded-2xl mb-6" style="background:var(--card);border:1px solid var(--border);"><div class="flex items-center gap-4 mb-6"><img src="'+u.avatar+'" class="w-20 h-20 rounded-2xl object-cover shadow-lg"><div><h2 class="font-display text-2xl font-bold" style="color:var(--fg);">'+u.name+'</h2><p class="text-sm" style="color:var(--muted);">'+u.email+'</p><span class="badge badge-warning mt-1">'+u.role.replace('_',' ')+'</span></div></div><div class="grid grid-cols-3 gap-4"><div class="text-center p-3 rounded-xl" style="background:var(--surface);"><p class="text-2xl font-bold text-brand-500">'+orders.length+'</p><p class="text-xs" style="color:var(--muted);">Orders</p></div><div class="text-center p-3 rounded-xl" style="background:var(--surface);"><p class="text-2xl font-bold text-emerald-500">'+fmtPrice(spent)+'</p><p class="text-xs" style="color:var(--muted);">Spent</p></div><div class="text-center p-3 rounded-xl" style="background:var(--surface);"><p class="text-2xl font-bold text-blue-500">'+(S.favorites.restaurants.length+S.favorites.foods.length)+'</p><p class="text-xs" style="color:var(--muted);">Favorites</p></div></div></div>';
+  h += '<div class="p-6 rounded-2xl mb-6" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);">Edit Profile</h3><div class="space-y-3"><div><label class="text-sm font-medium mb-1 block" style="color:var(--muted);">Full Name</label><input id="pf-name" type="text" class="input" value="'+u.name+'"></div><div><label class="text-sm font-medium mb-1 block" style="color:var(--muted);">Phone</label><input id="pf-phone" type="tel" class="input" value="'+(u.phone||'')+'"></div><div><label class="text-sm font-medium mb-1 block" style="color:var(--muted);">Address</label><textarea id="pf-addr" class="input" rows="2">'+(u.address||'')+'</textarea></div><button onclick="updateProf()" class="btn-primary">Save Changes</button></div></div>';
+  h += '<div class="p-6 rounded-2xl mb-6" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);">Change Password</h3><div class="space-y-3"><input id="pf-cpw" type="password" class="input" placeholder="Current Password"><input id="pf-npw" type="password" class="input" placeholder="New Password"><input id="pf-cpw2" type="password" class="input" placeholder="Confirm New Password"><button onclick="changePw()" class="btn-primary">Update Password</button></div></div>';
+  h += '<div class="p-6 rounded-2xl border-2 border-red-200 dark:border-red-800"><h3 class="font-display font-bold text-lg text-red-500 mb-2">Danger Zone</h3><p class="text-sm mb-4" style="color:var(--muted);">Once deleted, there is no going back.</p><button onclick="logout()" class="btn-danger">Delete Account</button></div></main>'+footer()+cartSidebar();
+  return h;
+};
+function updateProf() {
+  var n=document.getElementById('pf-name')?.value.trim(); var p=document.getElementById('pf-phone')?.value.trim(); var a=document.getElementById('pf-addr')?.value.trim();
+  if(!n){showToast('Name required','error');return;}
+  S.user.name=n;S.user.phone=p;S.user.address=a;
+  var idx=S.users.findIndex(function(u){return u.id===S.user.id});if(idx>-1)Object.assign(S.users[idx],{name:n,phone:p,address:a});
+  saveState();render();showToast('Profile updated!','success');
+}
+function changePw() {
+  var c=document.getElementById('pf-cpw')?.value;var n=document.getElementById('pf-npw')?.value;var cf=document.getElementById('pf-cpw2')?.value;
+  if(c!==S.user.password){showToast('Current password incorrect','error');return;}
+  if(n.length<6){showToast('Password must be 6+ characters','error');return;}
+  if(n!==cf){showToast('Passwords do not match','error');return;}
+  S.user.password=n;var idx=S.users.findIndex(function(u){return u.id===S.user.id});if(idx>-1)S.users[idx].password=n;
+  saveState();render();showToast('Password changed!','success');
+}
+
+// LOGIN
+routes['login'] = function() {
+  if(S.user){nav('home');return '';}
+  var h = navbar();
+  h += '<main class="min-h-[80vh] flex items-center justify-center px-4 py-12"><div class="w-full max-w-md anim-scale"><div class="text-center mb-8"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/20"><i class="fas fa-fire-flame-curved text-white text-2xl"></i></div><h1 class="font-display text-3xl font-bold" style="color:var(--fg);">Welcome Back</h1><p class="mt-2" style="color:var(--muted);">Sign in to your FoodFleet account</p></div>';
+  h += '<div class="p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><div class="space-y-4"><div><label class="text-sm font-medium mb-1.5 block" style="color:var(--fg);">Email</label><input id="l-email" type="email" class="input" placeholder="you@example.com"></div><div><label class="text-sm font-medium mb-1.5 block" style="color:var(--fg);">Password</label><input id="l-pw" type="password" class="input" placeholder="Enter your password"></div><div class="flex items-center justify-between"><label class="flex items-center gap-2 text-sm cursor-pointer" style="color:var(--muted);"><input type="checkbox" class="accent-orange-500"> Remember me</label><a href="#" onclick="showToast(\'Reset link sent to your email\',\'info\');return false" class="text-sm text-brand-500 hover:underline">Forgot password?</a></div><button onclick="handleLogin()" class="btn-primary w-full justify-center py-3">Sign In</button></div><div class="mt-6 text-center"><p class="text-sm" style="color:var(--muted);">Don\'t have an account? <a href="#register" class="text-brand-500 font-semibold hover:underline">Sign Up</a></p></div></div>';
+  h += '<div class="mt-6 p-4 rounded-xl" style="background:var(--surface);border:1px solid var(--border);"><p class="text-xs font-semibold mb-2" style="color:var(--muted);">DEMO CREDENTIALS</p><div class="space-y-1.5 text-xs" style="color:var(--fg);"><div class="flex justify-between cursor-pointer hover:text-brand-500" onclick="document.getElementById(\'l-email\').value=\'customer@demo.com\';document.getElementById(\'l-pw\').value=\'password123\'"><span><i class="fas fa-user mr-1 text-brand-400"></i>Customer</span><span style="color:var(--muted);">customer@demo.com</span></div><div class="flex justify-between cursor-pointer hover:text-brand-500" onclick="document.getElementById(\'l-email\').value=\'admin@demo.com\';document.getElementById(\'l-pw\').value=\'password123\'"><span><i class="fas fa-store mr-1 text-brand-400"></i>Restaurant Admin</span><span style="color:var(--muted);">admin@demo.com</span></div><div class="flex justify-between cursor-pointer hover:text-brand-500" onclick="document.getElementById(\'l-email\').value=\'super@demo.com\';document.getElementById(\'l-pw\').value=\'password123\'"><span><i class="fas fa-shield mr-1 text-brand-400"></i>Super Admin</span><span style="color:var(--muted);">super@demo.com</span></div></div><p class="text-[10px] mt-2" style="color:var(--muted);">Password: password123 (click row to auto-fill)</p></div></div></main>'+footer();
+  return h;
+};
+function handleLogin() {
+  var e=document.getElementById('l-email')?.value.trim();var p=document.getElementById('l-pw')?.value;
+  if(!e||!p){showToast('Please fill in all fields','error');return;}
+  if(!login(e,p)){showToast('Invalid email or password','error');}
+  else{var u=S.user;if(u.role==='customer')nav('home');else if(u.role==='restaurant_admin')nav('admin-dashboard');else nav('super-dashboard');}
+}
+
+// REGISTER
+routes['register'] = function() {
+  if(S.user){nav('home');return '';}
+  var h = navbar();
+  h += '<main class="min-h-[80vh] flex items-center justify-center px-4 py-12"><div class="w-full max-w-md anim-scale"><div class="text-center mb-8"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/20"><i class="fas fa-user-plus text-white text-2xl"></i></div><h1 class="font-display text-3xl font-bold" style="color:var(--fg);">Create Account</h1><p class="mt-2" style="color:var(--muted);">Join FoodFleet and start ordering</p></div>';
+  h += '<div class="p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><div class="space-y-4"><div><label class="text-sm font-medium mb-1.5 block" style="color:var(--fg);">Full Name</label><input id="r-name" type="text" class="input" placeholder="John Doe"></div><div><label class="text-sm font-medium mb-1.5 block" style="color:var(--fg);">Email</label><input id="r-email" type="email" class="input" placeholder="you@example.com"></div><div><label class="text-sm font-medium mb-1.5 block" style="color:var(--fg);">Phone</label><input id="r-phone" type="tel" class="input" placeholder="+1-555-0000"></div><div><label class="text-sm font-medium mb-1.5 block" style="color:var(--fg);">Password</label><input id="r-pw" type="password" class="input" placeholder="Min 6 characters"></div><div><label class="text-sm font-medium mb-1.5 block" style="color:var(--fg);">Confirm Password</label><input id="r-cpw" type="password" class="input" placeholder="Repeat password"></div><label class="flex items-start gap-2 text-sm cursor-pointer" style="color:var(--muted);"><input type="checkbox" id="r-terms" class="accent-orange-500 mt-0.5"><span>I agree to the <a href="#" class="text-brand-500 hover:underline">Terms</a></span></label><button onclick="handleReg()" class="btn-primary w-full justify-center py-3">Create Account</button></div><div class="mt-6 text-center"><p class="text-sm" style="color:var(--muted);">Already have an account? <a href="#login" class="text-brand-500 font-semibold hover:underline">Sign In</a></p></div></div></div></main>'+footer();
+  return h;
+};
+function handleReg() {
+  var n=document.getElementById('r-name')?.value.trim();var e=document.getElementById('r-email')?.value.trim();var p=document.getElementById('r-phone')?.value.trim();var pw=document.getElementById('r-pw')?.value;var cf=document.getElementById('r-cpw')?.value;var t=document.getElementById('r-terms')?.checked;
+  if(!n||!e||!pw){showToast('Fill in all required fields','error');return;}if(pw.length<6){showToast('Password must be 6+ characters','error');return;}if(pw!==cf){showToast('Passwords do not match','error');return;}if(!t){showToast('Accept the terms','error');return;}
+  var err=register({name:n,email:e,password:pw,phone:p,address:''});if(err)showToast(err,'error');else nav('home');
+}
+
+// ADMIN DASHBOARD
+routes['admin-dashboard'] = function() {
+  if(!S.user||S.user.role!=='restaurant_admin'){nav('login');return '';}
+  var rid = S.user.restaurantId||'r1';
+  var r = findRest(rid)||RESTAURANTS[0];
+  var orders = S.orders.filter(function(o){return o.restaurantId===rid});
+  var foods = FOODS.filter(function(f){return f.restaurantId===rid});
+  var rev = orders.filter(function(o){return o.status==='delivered'}).reduce(function(s,o){return s+o.total},0);
+  var pend = orders.filter(function(o){return o.status==='placed'||o.status==='accepted'}).length;
+  var active = orders.filter(function(o){return['placed','accepted','preparing','out_for_delivery'].indexOf(o.status)>-1});
+  var h = navbar();
+  h += '<main class="max-w-7xl mx-auto px-4 sm:px-6 py-8"><div class="flex flex-wrap items-center justify-between gap-4 mb-8"><div><h1 class="font-display text-3xl font-bold" style="color:var(--fg);">Restaurant Dashboard</h1><p class="mt-1" style="color:var(--muted);">Managing '+r.name+'</p></div><button onclick="showAddFoodModal()" class="btn-primary"><i class="fas fa-plus"></i> Add Food Item</button></div>';
+  h += '<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">';
+  [{l:'Total Revenue',v:fmtPrice(rev),i:'fa-indian-rupee-sign',c:'text-emerald-500',b:'bg-emerald-50 dark:bg-emerald-900/20'},{l:'Total Orders',v:orders.length,i:'fa-receipt',c:'text-blue-500',b:'bg-blue-50 dark:bg-blue-900/20'},{l:'Pending',v:pend,i:'fa-clock',c:'text-amber-500',b:'bg-amber-50 dark:bg-amber-900/20'},{l:'Menu Items',v:foods.length,i:'fa-utensils',c:'text-purple-500',b:'bg-purple-50 dark:bg-purple-900/20'}].forEach(function(s,i){
+    h+='<div class="p-5 rounded-2xl stat-glow card-hover anim-fade-up" style="background:var(--card);border:1px solid var(--border);animation-delay:'+i*0.05+'s;"><div class="w-10 h-10 rounded-xl '+s.b+' flex items-center justify-center mb-3"><i class="fas '+s.i+' '+s.c+'"></i></div><p class="text-2xl font-bold" style="color:var(--fg);">'+s.v+'</p><p class="text-xs mt-1" style="color:var(--muted);">'+s.l+'</p></div>';
+  });
+  h += '</div>';
+  h += '<div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="lg:col-span-2 p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);">Revenue Overview</h3><div style="height:250px;"><canvas id="admin-chart"></canvas></div></div><div class="p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);">Popular Items</h3><div class="space-y-3">';
+  var counts={};orders.forEach(function(o){o.items.forEach(function(it){counts[it.foodId]=(counts[it.foodId]||0)+it.qty;});});
+  var popItems=Object.keys(counts).map(function(fid){return {food:findFood(fid),count:counts[fid]};}).filter(function(x){return x.food}).sort(function(a,b){return b.count-a.count}).slice(0,5);
+  popItems.forEach(function(it,i){h+='<div class="flex items-center gap-3"><span class="w-6 h-6 rounded-md '+(i===0?'bg-amber-500 text-white':'bg-orange-50 dark:bg-orange-900/20 text-brand-500')+' text-xs font-bold flex items-center justify-center">'+(i+1)+'</span><img src="'+it.food.image+'" class="w-9 h-9 rounded-lg object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-medium truncate" style="color:var(--fg);">'+it.food.name+'</p><p class="text-xs" style="color:var(--muted);">'+it.count+' orders</p></div></div>';});
+  h += '</div></div></div>';
+  // Active orders
+  h += '<div class="mt-8 p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);">Active Orders</h3>';
+  if(active.length===0) h+='<p class="text-sm py-4 text-center" style="color:var(--muted);">No active orders</p>';
+  else { h+='<div class="space-y-3">'; active.forEach(function(o){var u=S.users.find(function(x){return x.id===o.userId});h+='<div class="flex flex-wrap items-center gap-4 p-4 rounded-xl" style="background:var(--surface);"><div class="flex-1 min-w-[200px]"><p class="text-sm font-semibold" style="color:var(--fg);">'+o.id+'</p><p class="text-xs" style="color:var(--muted);">'+(u?u.name:'Customer')+' · '+o.items.map(function(x){return x.name}).join(', ')+'</p></div><span class="badge '+statusColor(o.status)+'">'+statusLabel(o.status)+'</span><span class="text-sm font-bold" style="color:var(--fg);">'+fmtPrice(o.total)+'</span><div class="flex gap-2">';
+  if(o.status==='placed') h+='<button onclick="updOrdSt(\''+o.id+'\',\'accepted\')" class="btn-primary btn-sm">Accept</button><button onclick="updOrdSt(\''+o.id+'\',\'cancelled\')" class="btn-danger btn-sm">Reject</button>';
+  if(o.status==='accepted') h+='<button onclick="updOrdSt(\''+o.id+'\',\'preparing\')" class="btn-primary btn-sm">Preparing</button>';
+  if(o.status==='preparing') h+='<button onclick="updOrdSt(\''+o.id+'\',\'out_for_delivery\')" class="btn-primary btn-sm">Out for Delivery</button>';
+  if(o.status==='out_for_delivery') h+='<button onclick="updOrdSt(\''+o.id+'\',\'delivered\')" class="btn-primary btn-sm">Delivered</button>';
+  h+='</div></div>';}); h+='</div>'; }
+  h += '</div>';
+  // Menu management
+  h += '<div class="mt-8 p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);">Menu Management</h3><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">';
+  foods.forEach(function(f){h+='<div class="flex gap-3 p-3 rounded-xl" style="background:var(--surface);"><img src="'+f.image+'" class="w-16 h-16 rounded-lg object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate" style="color:var(--fg);">'+f.name+'</p><p class="text-xs" style="color:var(--muted);">'+f.category+' · '+fmtPrice(f.price)+'</p><div class="flex items-center gap-2 mt-1.5"><span class="badge '+(f.isAvailable?'badge-success':'badge-danger')+' text-[10px]">'+(f.isAvailable?'Available':'Unavailable')+'</span><button onclick="toggleAvail(\''+f.id+'\')" class="text-xs text-brand-500 hover:underline">Toggle</button></div></div></div>';});
+  h += '</div></div></main>'+footer();
+  return h;
+};
+function updOrdSt(id,st){var o=S.orders.find(function(x){return x.id===id});if(o){o.status=st;if(st==='delivered')o.deliveredAt=new Date().toISOString();saveState();render();showToast('Status: '+statusLabel(st),'success');}}
+function toggleAvail(fid){var f=findFood(fid);if(f){f.isAvailable=!f.isAvailable;saveState();render();showToast(f.name+' is now '+(f.isAvailable?'available':'unavailable'),'info');}}
+function showAddFoodModal() {
+  var old=document.getElementById('add-food-modal');if(old)old.remove();
+  var r=findRest(S.user?.restaurantId)||RESTAURANTS[0];
+  var m=document.createElement('div');m.id='add-food-modal';
+  m.innerHTML='<div class="overlay" onclick="document.getElementById(\'add-food-modal\').remove()"></div><div class="fixed inset-0 z-[70] flex items-center justify-center p-4"><div class="modal-content p-6"><h3 class="font-display text-xl font-bold mb-4" style="color:var(--fg);">Add New Food Item</h3><div class="space-y-3"><input id="af-name" class="input" placeholder="Food Name"><select id="af-cat" class="input">'+r.categories.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('')+'</select><div class="flex gap-3"><input id="af-price" type="number" class="input flex-1" placeholder="Price"><input id="af-orig" type="number" class="input flex-1" placeholder="Original Price (opt)"></div><textarea id="af-desc" class="input" rows="2" placeholder="Description"></textarea><div class="flex items-center gap-3"><label class="flex items-center gap-2 text-sm" style="color:var(--fg);"><input type="checkbox" id="af-veg" class="accent-emerald-500"> Vegetarian</label><label class="flex items-center gap-2 text-sm" style="color:var(--fg);"><input type="checkbox" id="af-pop" class="accent-orange-500"> Popular</label></div><div class="flex gap-3 mt-2"><button onclick="document.getElementById(\'add-food-modal\').remove()" class="btn-secondary flex-1 justify-center">Cancel</button><button onclick="addFoodItem()" class="btn-primary flex-1 justify-center">Add Item</button></div></div></div></div>';
+  document.body.appendChild(m);
+}
+function addFoodItem() {
+  var n=document.getElementById('af-name')?.value.trim();var c=document.getElementById('af-cat')?.value;var p=parseInt(document.getElementById('af-price')?.value);var op=parseInt(document.getElementById('af-orig')?.value)||0;var d=document.getElementById('af-desc')?.value.trim();var v=document.getElementById('af-veg')?.checked||false;var pop=document.getElementById('af-pop')?.checked||false;
+  if(!n||!p){showToast('Name and price required','error');return;}
+  FOODS.push({id:'f'+Date.now(),restaurantId:S.user.restaurantId,name:n,image:'https://picsum.photos/seed/'+Date.now()+'/400/300.jpg',price:p,originalPrice:op,category:c,rating:0,reviewCount:0,description:d||'',ingredients:[],isVeg:v,isAvailable:true,isPopular:pop,preparationTime:15});
+  document.getElementById('add-food-modal')?.remove();render();showToast(n+' added to menu!','success');
+}
+
+// SUPER ADMIN DASHBOARD
+routes['super-dashboard'] = function() {
+  if(!S.user||S.user.role!=='super_admin'){nav('login');return '';}
+  var allOrd = S.orders;
+  var rev = allOrd.filter(function(o){return o.status==='delivered'}).reduce(function(s,o){return s+o.total},0);
+  var custs = S.users.filter(function(u){return u.role==='customer'}).length;
+  var rests = RESTAURANTS.length;
+  var pend = RESTAURANTS.filter(function(r){return !r.approved}).length;
+  var act = allOrd.filter(function(o){return['placed','accepted','preparing','out_for_delivery'].indexOf(o.status)>-1}).length;
+  var h = navbar();
+  h += '<main class="max-w-7xl mx-auto px-4 sm:px-6 py-8"><h1 class="font-display text-3xl font-bold mb-8" style="color:var(--fg);">Super Admin Panel</h1>';
+  h += '<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">';
+  [{l:'Revenue',v:fmtPrice(rev),i:'fa-indian-rupee-sign',c:'text-emerald-500',b:'bg-emerald-50 dark:bg-emerald-900/20'},{l:'Customers',v:custs,i:'fa-users',c:'text-blue-500',b:'bg-blue-50 dark:bg-blue-900/20'},{l:'Restaurants',v:rests,i:'fa-store',c:'text-purple-500',b:'bg-purple-50 dark:bg-purple-900/20'},{l:'Active Orders',v:act,i:'fa-spinner',c:'text-amber-500',b:'bg-amber-50 dark:bg-amber-900/20'},{l:'Pending',v:pend,i:'fa-clock',c:'text-red-500',b:'bg-red-50 dark:bg-red-900/20'}].forEach(function(s,i){
+    h+='<div class="p-4 rounded-2xl stat-glow card-hover anim-fade-up" style="background:var(--card);border:1px solid var(--border);animation-delay:'+i*0.05+'s;"><div class="w-9 h-9 rounded-xl '+s.b+' flex items-center justify-center mb-3"><i class="fas '+s.i+' '+s.c+' text-sm"></i></div><p class="text-xl font-bold" style="color:var(--fg);">'+s.v+'</p><p class="text-[11px] mt-0.5" style="color:var(--muted);">'+s.l+'</p></div>';
+  });
+  h += '</div>';
+  h += '<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"><div class="p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);">Orders Trend</h3><div style="height:250px;"><canvas id="super-ord-chart"></canvas></div></div><div class="p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><h3 class="font-display font-bold text-lg mb-4" style="color:var(--fg);">Revenue by Cuisine</h3><div style="height:250px;"><canvas id="super-cui-chart"></canvas></div></div></div>';
+  // Tabs
+  h += '<div class="flex gap-2 mb-6 overflow-x-auto pb-2"><button class="tab active" onclick="showSuperTab(\'approvals\',this)">Pending Approvals</button><button class="tab" onclick="showSuperTab(\'users\',this)">All Users</button><button class="tab" onclick="showSuperTab(\'rests\',this)">All Restaurants</button><button class="tab" onclick="showSuperTab(\'allords\',this)">All Orders</button></div>';
+  // Approvals
+  h += '<div id="st-approvals" class="p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);">';
+  var unapproved = RESTAURANTS.filter(function(r){return !r.approved});
+  if(unapproved.length===0) h+='<p class="text-center py-8" style="color:var(--muted);">No pending approvals</p>';
+  else {h+='<div class="space-y-3">';unapproved.forEach(function(r){h+='<div class="flex flex-wrap items-center gap-4 p-4 rounded-xl" style="background:var(--surface);"><img src="'+r.image+'" class="w-16 h-16 rounded-xl object-cover"><div class="flex-1 min-w-[200px]"><p class="font-semibold" style="color:var(--fg);">'+r.name+'</p><p class="text-sm" style="color:var(--muted);">'+r.cuisine+' · '+r.address+'</p></div><div class="flex gap-2"><button onclick="approveRest(\''+r.id+'\')" class="btn-primary btn-sm"><i class="fas fa-check mr-1"></i>Approve</button><button onclick="rejectRest(\''+r.id+'\')" class="btn-danger btn-sm"><i class="fas fa-times mr-1"></i>Reject</button></div></div>';});h+='</div>';}
+  h += '</div>';
+  // Users
+  h += '<div id="st-users" class="hidden p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr style="color:var(--muted);border-bottom:1px solid var(--border);"><th class="text-left py-3 px-2">User</th><th class="text-left py-3 px-2">Email</th><th class="text-left py-3 px-2">Role</th><th class="text-left py-3 px-2">Joined</th></tr></thead><tbody>';
+  S.users.forEach(function(u){h+='<tr style="border-bottom:1px solid var(--border);"><td class="py-3 px-2"><div class="flex items-center gap-2"><img src="'+u.avatar+'" class="w-8 h-8 rounded-lg object-cover"><span style="color:var(--fg);" class="font-medium">'+u.name+'</span></div></td><td class="py-3 px-2" style="color:var(--muted);">'+u.email+'</td><td class="py-3 px-2"><span class="badge '+(u.role==='super_admin'?'badge-danger':u.role==='restaurant_admin'?'badge-warning':'badge-info')+'">'+u.role.replace('_',' ')+'</span></td><td class="py-3 px-2" style="color:var(--muted);">'+u.joinedDate+'</td></tr>';});
+  h += '</tbody></table></div></div>';
+  // Restaurants
+  h += '<div id="st-rests" class="hidden p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr style="color:var(--muted);border-bottom:1px solid var(--border);"><th class="text-left py-3 px-2">Restaurant</th><th class="text-left py-3 px-2">Cuisine</th><th class="text-left py-3 px-2">Rating</th><th class="text-left py-3 px-2">Status</th></tr></thead><tbody>';
+  RESTAURANTS.forEach(function(r){h+='<tr style="border-bottom:1px solid var(--border);"><td class="py-3 px-2"><div class="flex items-center gap-2"><img src="'+r.image+'" class="w-8 h-8 rounded-lg object-cover"><span style="color:var(--fg);" class="font-medium">'+r.name+'</span></div></td><td class="py-3 px-2" style="color:var(--muted);">'+r.cuisine+'</td><td class="py-3 px-2"><span class="flex items-center gap-1"><i class="fas fa-star text-amber-400 text-xs"></i>'+r.rating+'</span></td><td class="py-3 px-2"><span class="badge '+(r.approved?'badge-success':'badge-warning')+'">'+(r.approved?'Approved':'Pending')+'</span></td></tr>';});
+  h += '</tbody></table></div></div>';
+  // All Orders
+  h += '<div id="st-allords" class="hidden p-6 rounded-2xl" style="background:var(--card);border:1px solid var(--border);"><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr style="color:var(--muted);border-bottom:1px solid var(--border);"><th class="text-left py-3 px-2">Order ID</th><th class="text-left py-3 px-2">Customer</th><th class="text-left py-3 px-2">Restaurant</th><th class="text-left py-3 px-2">Total</th><th class="text-left py-3 px-2">Status</th><th class="text-left py-3 px-2">Date</th></tr></thead><tbody>';
+  allOrd.slice().reverse().slice(0,20).forEach(function(o){var u=S.users.find(function(x){return x.id===o.userId});var r=findRest(o.restaurantId);h+='<tr style="border-bottom:1px solid var(--border);"><td class="py-3 px-2 font-medium" style="color:var(--fg);">'+o.id+'</td><td class="py-3 px-2" style="color:var(--muted);">'+(u?u.name:'?')+'</td><td class="py-3 px-2" style="color:var(--muted);">'+(r?r.name:'?')+'</td><td class="py-3 px-2 font-medium" style="color:var(--fg);">'+fmtPrice(o.total)+'</td><td class="py-3 px-2"><span class="badge '+statusColor(o.status)+'">'+statusLabel(o.status)+'</span></td><td class="py-3 px-2" style="color:var(--muted);">'+timeAgo(o.placedAt)+'</td></tr>';});
+  h += '</tbody></table></div></div>';
+  h += '</main>'+footer();
+  return h;
+};
+function showSuperTab(tab,btn) {
+  ['approvals','users','rests','allords'].forEach(function(t){var el=document.getElementById('st-'+t);if(el)el.classList.toggle('hidden',t!==tab);});
+  btn.parentElement.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});btn.classList.add('active');
+}
+function approveRest(id){var r=findRest(id);if(r){r.approved=true;saveState();render();showToast(r.name+' approved!','success');}}
+function rejectRest(id){var r=findRest(id);if(r){r.approved=false;saveState();render();showToast(r.name+' rejected','warning');}}
+
+/* ===================== CHARTS ===================== */
+function initPageCharts() {
+  var mutedColor = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#64748B';
+  var gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#E2E8F0';
+
+  // Admin revenue chart
+  var adminEl = document.getElementById('admin-chart');
+  if(adminEl) {
+    new Chart(adminEl, {
+      type:'bar',
+      data:{
+        labels:['Jan','Feb','Mar','Apr','May','Jun'],
+        datasets:[{label:'Revenue (Rs.)',data:[12500,18200,15800,22400,19800,26100],backgroundColor:'rgba(249,115,22,0.7)',borderRadius:8,borderSkipped:false}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:mutedColor},grid:{display:false}},y:{ticks:{color:mutedColor},grid:{color:gridColor}}}}
+    });
+  }
+
+  // Super admin orders chart
+  var ordEl = document.getElementById('super-ord-chart');
+  if(ordEl) {
+    new Chart(ordEl, {
+      type:'line',
+      data:{
+        labels:['Week 1','Week 2','Week 3','Week 4'],
+        datasets:[
+          {label:'Orders',data:[45,62,58,73],borderColor:'#F97316',backgroundColor:'rgba(249,115,22,0.1)',fill:true,tension:0.4},
+          {label:'Delivered',data:[38,55,50,65],borderColor:'#10B981',backgroundColor:'rgba(16,185,129,0.1)',fill:true,tension:0.4}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:mutedColor}}},scales:{x:{ticks:{color:mutedColor},grid:{display:false}},y:{ticks:{color:mutedColor},grid:{color:gridColor}}}}
+    });
+  }
+
+  // Super admin cuisine chart
+  var cuiEl = document.getElementById('super-cui-chart');
+  if(cuiEl) {
+    new Chart(cuiEl, {
+      type:'doughnut',
+      data:{
+        labels:['Chinese','Italian','Indian','Japanese','Mexican','Thai','American','Mediterranean'],
+        datasets:[{data:[22,28,35,18,15,20,12,10],backgroundColor:['#EF4444','#10B981','#F97316','#3B82F6','#8B5CF6','#EC4899','#14B8A6','#F59E0B'],borderWidth:0}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:mutedColor,boxWidth:12,padding:8,font:{size:11}}}}}
+    });
+  }
+}
+
+/* ===================== INIT ===================== */
+initState();
+render();
+initRouter();
+
+</script>
+</body>
+</html>
